@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Doodh Hisaab",
+  "description": "A mobile-first dairy management system for local dairy owners in India, supporting daily milk entries, billing, and customer management with Hindi/English support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "short_name": "Doodh Hisaab",
+  "name": "Doodh Hisaab - Premium Dairy Management",
+  "description": "Progressive Web App for Doodh Hisaab Dairy Management Platform",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#090d16",
+  "theme_color": "#10b981",
+  "display": "standalone",
+  "orientation": "portrait"
+}

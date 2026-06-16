@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-950: var(--slate-950);
+  --color-slate-900: var(--slate-900);
+  --color-slate-855: var(--slate-855);
+  --color-slate-850: var(--slate-850);
+  --color-slate-805: var(--slate-805);
+  --color-slate-800: var(--slate-800);
+  --color-slate-705: var(--slate-705);
+  --color-slate-700: var(--slate-700);
+  --color-slate-600: var(--slate-600);
+  --color-slate-500: var(--slate-500);
+  --color-slate-450: var(--slate-450);
+  --color-slate-400: var(--slate-400);
+  --color-slate-350: var(--slate-350);
+  --color-slate-300: var(--slate-300);
+  --color-slate-250: var(--slate-250);
+  --color-slate-200: var(--slate-200);
+  --color-slate-150: var(--slate-150);
+  --color-slate-100: var(--slate-100);
+  --color-slate-50: var(--slate-50);
+
+  --color-emerald-950: var(--emerald-950);
+  --color-emerald-900: var(--emerald-900);
+  --color-emerald-450: var(--emerald-450);
+  --color-emerald-400: var(--emerald-400);
+  --color-orange-950: var(--orange-950);
+  --color-orange-900: var(--orange-900);
+  --color-purple-950: var(--purple-950);
+  --color-amber-950: var(--amber-950);
+  --color-blue-950: var(--blue-950);
+  --color-red-650: var(--red-650);
+  --color-red-550: var(--red-550);
+}
+
+:root {
+  /* Light Theme (Default) */
+  --slate-950: #f1f5f9;
+  --slate-900: #ffffff;
+  --slate-855: #e2e8f0;
+  --slate-850: #e2e8f0;
+  --slate-805: #cbd5e1;
+  --slate-800: #f8fafc;
+  --slate-705: #e2e8f0;
+  --slate-700: #cbd5e1;
+  --slate-600: #64748b;
+  --slate-500: #64748b;
+  --slate-450: #475569;
+  --slate-400: #475569;
+  --slate-350: #334155;
+  --slate-300: #334155;
+  --slate-250: #1e293b;
+  --slate-200: #1e293b;
+  --slate-150: #0f172a;
+  --slate-100: #0f172a;
+  --slate-50: #020617;
+
+  --emerald-950: #e6f4ea;
+  --emerald-900: #a7f3d0;
+  --emerald-450: #047857;
+  --emerald-400: #059669;
+  --orange-950: #fff7ed;
+  --orange-900: #fed7aa;
+  --purple-950: #f3e8ff;
+  --amber-950: #fef3c7;
+  --blue-950: #eff6ff;
+  --red-650: #fee2e2;
+  --red-550: #fecaca;
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --phone-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 40px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  /* Dark Theme */
+  --slate-950: #020617;
+  --slate-900: #0f172a;
+  --slate-855: #182235;
+  --slate-850: #1e293b;
+  --slate-805: #223047;
+  --slate-800: #1e293b;
+  --slate-705: #334155;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-450: #94a3b8;
+  --slate-400: #94a3b8;
+  --slate-350: #cbd5e1;
+  --slate-300: #cbd5e1;
+  --slate-250: #e2e8f0;
+  --slate-200: #e2e8f0;
+  --slate-150: #f1f5f9;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+
+  --emerald-950: #022c22;
+  --emerald-900: #064e3b;
+  --emerald-450: #10b981;
+  --emerald-400: #34d399;
+  --orange-950: #431407;
+  --orange-900: #7c2d12;
+  --purple-950: #3b0764;
+  --amber-950: #451a03;
+  --blue-950: #172554;
+  --red-650: #dc2626;
+  --red-550: #ef4444;
+
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #1e293b;
+  --scrollbar-thumb-hover: #334155;
+  --phone-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.1);
+
+  /* Re-declare Tailwind theme properties to resolve variables dynamically in dark mode */
+  --color-slate-950: var(--slate-950);
+  --color-slate-900: var(--slate-900);
+  --color-slate-855: var(--slate-855);
+  --color-slate-850: var(--slate-850);
+  --color-slate-805: var(--slate-805);
+  --color-slate-800: var(--slate-800);
+  --color-slate-705: var(--slate-705);
+  --color-slate-700: var(--slate-700);
+  --color-slate-600: var(--slate-600);
+  --color-slate-500: var(--slate-500);
+  --color-slate-450: var(--slate-450);
+  --color-slate-400: var(--slate-400);
+  --color-slate-350: var(--slate-350);
+  --color-slate-300: var(--slate-300);
+  --color-slate-250: var(--slate-250);
+  --color-slate-200: var(--slate-200);
+  --color-slate-150: var(--slate-150);
+  --color-slate-100: var(--slate-100);
+  --color-slate-50: var(--slate-50);
+
+  --color-emerald-950: var(--emerald-950);
+  --color-emerald-900: var(--emerald-900);
+  --color-emerald-450: var(--emerald-450);
+  --color-emerald-400: var(--emerald-400);
+  --color-orange-950: var(--orange-950);
+  --color-orange-900: var(--orange-900);
+  --color-purple-950: var(--purple-950);
+  --color-amber-950: var(--amber-950);
+  --color-blue-950: var(--blue-950);
+  --color-red-650: var(--red-650);
+  --color-red-550: var(--red-550);
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  }
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Micro animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+.glow-effect {
+  position: relative;
+}
+
+.glow-effect::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #10b981, #3b82f6);
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-effect:hover::after {
+  opacity: 0.4;
+}
+
+/* Phone mockup container shadow and scaling */
+.phone-shadow {
+  box-shadow: var(--phone-shadow);
+}
+
+/* Custom premium spinner loader */
+@keyframes custom-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.custom-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: custom-spin 0.75s linear infinite;
+}
