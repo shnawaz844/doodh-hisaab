@@ -24,7 +24,7 @@ const uuidMap: Record<string, string> = {
   'cust2': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
   'cust3': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55',
   'admin1': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-  'staff1': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66',
+  'staff1': 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
   'addr1': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a77',
   'addr2': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a78',
   'addr3': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a79',

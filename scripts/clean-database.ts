@@ -55,6 +55,84 @@ async function cleanSupabase() {
   console.log('--- SUPABASE CLEAN-UP COMPLETED ---\n');
 }
 
+async function cleanAuthUsers() {
+  console.log('--- STARTING SUPABASE AUTH USERS CLEAN-UP ---');
+  let userIdsToDelete: { id: string; email?: string }[] = [];
+
+  // Try to list users via Auth Admin API
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers();
+    if (error) {
+      console.warn(`⚠️ Warning: listing auth users failed (${error.message}). Will fallback to public.users table.`);
+    } else if (data && data.users) {
+      userIdsToDelete = data.users.map((u: any) => ({ id: u.id, email: u.email }));
+    }
+  } catch (e: any) {
+    console.warn(`⚠️ Exception listing auth users: ${e.message}. Will fallback.`);
+  }
+
+  // Fallback / supplement: get users from public.users table
+  try {
+    console.log('Fetching users from public.users table...');
+    const { data: dbUsers, error: dbUsersErr } = await supabase
+      .from('users')
+      .select('id, email');
+    
+    if (dbUsersErr) {
+      console.error(`❌ Error fetching from public.users: ${dbUsersErr.message}`);
+    } else if (dbUsers) {
+      console.log(`Found ${dbUsers.length} users in public.users.`);
+      for (const du of dbUsers) {
+        if (!userIdsToDelete.some(u => u.id === du.id)) {
+          userIdsToDelete.push({ id: du.id, email: du.email });
+        }
+      }
+    }
+  } catch (e: any) {
+    console.error(`💥 Exception fetching public.users: ${e.message}`);
+  }
+
+  // Perform deletion
+  console.log(`Determined ${userIdsToDelete.length} total users to check/delete.`);
+  for (const user of userIdsToDelete) {
+    if (user.email === 'admin@doodhhisaab.com' || user.id === 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11') {
+      console.log(`Keeping admin user: ${user.email || 'Admin'} (ID: ${user.id})`);
+      continue;
+    }
+    
+    console.log(`Deleting auth user ID: ${user.id} (${user.email || 'no email'})...`);
+    try {
+      const { error: delErr } = await supabase.auth.admin.deleteUser(user.id);
+      if (delErr) {
+        console.error(`❌ Error deleting auth user ${user.id}: ${delErr.message}`);
+      } else {
+        console.log(`✅ Deleted auth user ${user.id} successfully.`);
+      }
+    } catch (e: any) {
+      console.error(`💥 Exception deleting auth user ${user.id}: ${e.message}`);
+    }
+  }
+  
+  // Clean public.users table as well (except admin)
+  try {
+    console.log('Clearing public.users table (except admin)...');
+    const adminId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    const { error: usersErr } = await supabase
+      .from('users')
+      .delete()
+      .neq('id', adminId);
+    
+    if (usersErr) {
+      console.error(`❌ Error clearing public.users table: ${usersErr.message} (${usersErr.code})`);
+    } else {
+      console.log(`✅ Cleared public.users table successfully.`);
+    }
+  } catch (e: any) {
+    console.error(`💥 Exception cleaning public.users table: ${e.message}`);
+  }
+  console.log('--- SUPABASE AUTH USERS CLEAN-UP COMPLETED ---\n');
+}
+
 function cleanLocalDb() {
   console.log('--- STARTING LOCAL db.json CLEAN-UP ---');
   const dbPath = path.join(process.cwd(), 'server', 'db.json');
@@ -80,6 +158,11 @@ function cleanLocalDb() {
     db.subscriptions = [];
     db.addresses = []; // Linked to customers
 
+    // Clear non-admin users
+    if (db.users) {
+      db.users = db.users.filter((u: any) => u.email === 'admin@doodhhisaab.com' || u.id === 'admin1');
+    }
+
     // Write back to file
     fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8');
     console.log(`✅ Successfully cleared transactional data in local db.json at ${dbPath}`);
@@ -91,6 +174,7 @@ function cleanLocalDb() {
 
 async function run() {
   await cleanSupabase();
+  await cleanAuthUsers();
   cleanLocalDb();
   console.log('🎉 Database clean-up successfully finished!');
 }

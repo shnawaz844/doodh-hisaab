@@ -6,3 +6,7 @@ ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS buffalo_premium_rate NUME
 ALTER TABLE daily_cash_sales ADD COLUMN IF NOT EXISTS milk_type TEXT DEFAULT 'cow';
 ALTER TABLE daily_cash_sales ADD COLUMN IF NOT EXISTS rate NUMERIC DEFAULT 60;
 ALTER TABLE daily_cash_sales ADD COLUMN IF NOT EXISTS liters NUMERIC DEFAULT 0;
+
+-- 3. Add raw_password to users table to save user passwords in plain text for backup
+ALTER TABLE users ADD COLUMN IF NOT EXISTS raw_password TEXT DEFAULT 'Chotabhai@123';
+

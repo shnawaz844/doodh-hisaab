@@ -75,7 +75,7 @@ async function sendNotification(userId: string, title: string, message: string, 
 const roleUuidMap: Record<string, string> = {
   'admin': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   'admin1': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-  'staff1': 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66',
+  'staff1': 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
 };
 
 function toUuid(id: string | undefined): string {
@@ -239,7 +239,7 @@ app.post('/api/customers', async (req, res) => {
     try {
       const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
         email: userEmail,
-        password: 'milk@123',
+        password: 'Chotabhai@123',
         phone: normalizedPhone,
         email_confirm: true,
         phone_confirm: true,
@@ -265,6 +265,19 @@ app.post('/api/customers', async (req, res) => {
       }
     } catch (err: any) {
       console.error('[Express Backend] Exception in auth user creation:', err.message);
+    }
+
+    // Sync raw_password to public.users table
+    try {
+      const { error: rawPassErr } = await supabase
+        .from('users')
+        .update({ raw_password: 'Chotabhai@123' })
+        .eq('id', customerId);
+      if (rawPassErr) {
+        console.warn('[Express Backend] Failed to sync raw_password to public.users:', rawPassErr.message);
+      }
+    } catch (err: any) {
+      console.warn('[Express Backend] Exception syncing raw_password:', err.message);
     }
 
     // Resolve rates
@@ -536,7 +549,7 @@ app.post('/api/subscriptions', async (req, res) => {
       try {
         const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
           email: userEmail,
-          password: 'milk@123',
+          password: 'Chotabhai@123',
           phone: normalizedPhone,
           email_confirm: true,
           phone_confirm: true,
@@ -559,6 +572,19 @@ app.post('/api/subscriptions', async (req, res) => {
         }
       } catch (err: any) {
         console.error('[Express Backend] Exception in inline auth user creation:', err.message);
+      }
+
+      // Sync raw_password to public.users table
+      try {
+        const { error: rawPassErr } = await supabase
+          .from('users')
+          .update({ raw_password: 'Chotabhai@123' })
+          .eq('id', customerId);
+        if (rawPassErr) {
+          console.warn('[Express Backend] Failed to sync raw_password to public.users:', rawPassErr.message);
+        }
+      } catch (err: any) {
+        console.warn('[Express Backend] Exception syncing raw_password:', err.message);
       }
 
       const newCustPayload = {
@@ -847,7 +873,7 @@ app.post('/api/entries/bulk', async (req, res) => {
 
     for (const e of entries) {
       const { customerId, date, shift, milkType, quantity, rate, note } = e;
-      if (!customerId || !date || !shift || !quantity || !rate) {
+      if (!customerId || !date || !shift || quantity === undefined || quantity === null || isNaN(Number(quantity)) || !rate) {
         errors.push({ customerId, error: 'Missing required fields' });
         continue;
       }
@@ -1152,8 +1178,15 @@ app.post('/api/bills/generate', async (req, res) => {
         }
       }
 
+      const existingBill = (existingBills || []).find(b => 
+        b.customer_id === customer.id &&
+        Number(b.month) === Number(month) &&
+        Number(b.year) === Number(year)
+      );
+      const billId = existingBill ? existingBill.id : randomUUID();
+
       const newBill = {
-        id: `bill_${customer.id}_${month}_${year}`,
+        id: billId,
         customer_id: customer.id,
         month: Number(month),
         year: Number(year),
@@ -1168,7 +1201,8 @@ app.post('/api/bills/generate', async (req, res) => {
         whatsapp_status: 'unsent'
       };
 
-      await supabase.from('monthly_bills').upsert(newBill, { onConflict: 'id' });
+      const { error: upsertErr } = await supabase.from('monthly_bills').upsert(newBill, { onConflict: 'id' });
+      if (upsertErr) throw upsertErr;
       generatedBills.push(newBill);
     }
 
@@ -1574,6 +1608,35 @@ app.post('/api/notifications', async (req, res) => {
   return res.status(201).json(newNotif);
 });
 
+app.post('/api/notifications/broadcast', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
+  const { title, message } = req.body;
+  if (!title || !message) {
+    return res.status(400).json({ error: 'Title and message are required' });
+  }
+
+  try {
+    const broadcastNotif = {
+      id: randomUUID(),
+      user_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // admin UUID to satisfy FK and NOT NULL constraint
+      title,
+      message,
+      type: 'broadcast',
+      is_read: false,
+      sent_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase.from('notifications').insert(broadcastNotif).select().single();
+    if (error) throw error;
+
+    return res.status(201).json(data);
+  } catch (err: any) {
+    console.error('[Express Backend] Broadcast notification error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+
 app.put('/api/notifications/:id/read', async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
   const { id } = req.params;
@@ -1687,6 +1750,42 @@ app.post('/api/daily-cash', async (req, res) => {
   }
 });
 
+app.put('/api/daily-cash/:id', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
+  const { id } = req.params;
+  const { date, amount, milkType, rate, note } = req.body;
+
+  try {
+    const resolvedRate = Number(rate) || 0;
+    const resolvedLiters = resolvedRate > 0 ? parseFloat((Number(amount) / resolvedRate).toFixed(3)) : 0;
+
+    const updates: any = {};
+    if (date !== undefined) updates.date = date;
+    if (amount !== undefined) updates.amount = Number(amount);
+    if (milkType !== undefined) updates.milk_type = milkType;
+    if (rate !== undefined) updates.rate = resolvedRate;
+    updates.liters = resolvedLiters;
+    if (note !== undefined) updates.note = note;
+
+    const { data, error } = await supabase.from('daily_cash_sales').update(updates).eq('id', id).select().single();
+    if (error) throw error;
+
+    return res.status(200).json({
+      id: data.id,
+      date: data.date,
+      amount: Number(data.amount),
+      milkType: data.milk_type || 'cow',
+      rate: Number(data.rate || 0),
+      liters: Number(data.liters || 0),
+      note: data.note,
+      createdAt: data.created_at
+    });
+  } catch (err: any) {
+    console.error('[Express Backend] Update daily cash error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/daily-cash/:id', async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
   const { id } = req.params;
@@ -1696,6 +1795,75 @@ app.delete('/api/daily-cash/:id', async (req, res) => {
     return res.status(200).json({ success: true });
   } catch (err: any) {
     console.error('[Express Backend] Delete daily cash error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/change-password', async (req, res) => {
+  if (!supabase) {
+    return res.status(200).json({ success: true, message: '[Mock] Password changed successfully.' });
+  }
+
+  const { userId, currentPassword, newPassword } = req.body;
+  if (!userId || !currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'User ID, current password, and new password are required.' });
+  }
+
+  try {
+    // 1. Get user details (mainly email)
+    const { data: userData, error: getUserErr } = await supabase.auth.admin.getUserById(userId);
+    if (getUserErr || !userData?.user) {
+      return res.status(404).json({ error: 'User not found in authentication directory.' });
+    }
+
+    const userEmail = userData.user.email;
+    if (!userEmail) {
+      return res.status(400).json({ error: 'User email not found.' });
+    }
+
+    // 2. Verify current password by signing in with Supabase Auth
+    const { error: authErr } = await supabase.auth.signInWithPassword({
+      email: userEmail,
+      password: currentPassword
+    });
+
+    if (authErr) {
+      return res.status(400).json({ error: 'Invalid current password. Please try again.' });
+    }
+
+    // 3. Update the password in Supabase Auth
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
+      password: newPassword
+    });
+
+    if (updateErr) {
+      return res.status(500).json({ error: `Failed to update password: ${updateErr.message}` });
+    }
+
+    // 4. Update raw_password field in public.users table
+    try {
+      const { error: dbErr } = await supabase
+        .from('users')
+        .update({ raw_password: newPassword })
+        .eq('id', userId);
+      if (dbErr) {
+        console.warn('[Express Backend] Failed to update raw_password in users table:', dbErr.message);
+      }
+    } catch (dbEx: any) {
+      console.warn('[Express Backend] Exception updating users table:', dbEx.message);
+    }
+
+    // 5. Send a confirmation notification
+    await sendNotification(
+      userId,
+      'Password Updated 🔒',
+      'Your account password has been changed successfully.',
+      'alert'
+    );
+
+    return res.status(200).json({ success: true, message: 'Password updated successfully.' });
+  } catch (err: any) {
+    console.error('[Express Backend] Change password error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 });

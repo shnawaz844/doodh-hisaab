@@ -40,10 +40,13 @@ export default function App() {
     return localStorage.getItem('email') || '';
   });
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'customer' | 'delivery_staff' | 'admin'>(() => {
     return (localStorage.getItem('role') as any) || 'customer';
   });
-  const [currentTab, setCurrentTab] = useState<'home' | 'subscribe' | 'logs' | 'calendar' | 'billing'>('home');
+  const [currentTab, setCurrentTab] = useState<'home' | 'subscribe' | 'logs' | 'calendar' | 'billing'>(() => {
+    return (localStorage.getItem('currentTab') as any) || 'home';
+  });
   
   // Custom Alert / Confirm states
   const [customAlert, setCustomAlert] = useState<{ title: string; message: string } | null>(null);
@@ -52,7 +55,7 @@ export default function App() {
   // Hardcoded credentials for each role
   const CREDENTIALS = {
     admin: { email: 'admin@doodhfarm.com', password: 'admin@123' },
-    customer: { email: 'customer@doodhfarm.com', password: 'milk@123' },
+    customer: { email: 'customer@doodhfarm.com', password: 'Chotabhai@123' },
     delivery_staff: { email: 'driver@doodhfarm.com', password: 'driver@123' },
   };
 
@@ -71,6 +74,7 @@ export default function App() {
   const [marketplace, setMarketplace] = useState<any[]>([]);
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [bills, setBills] = useState<any[]>([]);
+  const [selectedBillSummary, setSelectedBillSummary] = useState<any | null>(null);
   const [activeTasks, setActiveTasks] = useState<any[]>([]);
 
   // Admin Workspace States
@@ -79,6 +83,7 @@ export default function App() {
   });
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [quickEntrySearchQuery, setQuickEntrySearchQuery] = useState('');
   const [allSubscriptions, setAllSubscriptions] = useState<any[]>([]);
   const [allEntries, setAllEntries] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
@@ -155,6 +160,7 @@ export default function App() {
 
   // Bulk entry selection state
   const [quickEntrySelections, setQuickEntrySelections] = useState<Record<string, boolean>>({});
+  const [loggingSingleId, setLoggingSingleId] = useState<string | null>(null);
 
   // Billing inputs
   const [billMonth, setBillMonth] = useState(() => String(new Date().getMonth() + 1));
@@ -177,6 +183,10 @@ export default function App() {
   const [cashSaleMilkType, setCashSaleMilkType] = useState<'cow' | 'buffalo_standard' | 'buffalo_premium'>('cow');
   const [cashSaleAmount, setCashSaleAmount] = useState('');
   const [allCashSales, setAllCashSales] = useState<any[]>([]);
+  const [manualCashAmount, setManualCashAmount] = useState('');
+  const [editingCashSaleId, setEditingCashSaleId] = useState<string | null>(null);
+  const [literSaleMilkType, setLiterSaleMilkType] = useState<'cow' | 'buffalo_standard' | 'buffalo_premium'>('cow');
+  const [manualLiterQty, setManualLiterQty] = useState('');
 
   // Calendar States
   const [selectedCustCalendar, setSelectedCustCalendar] = useState<any>(null);
@@ -186,6 +196,18 @@ export default function App() {
   const [loggedInCustomerId, setLoggedInCustomerId] = useState(() => {
     return localStorage.getItem('loggedInCustomerId') || 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33';
   });
+
+  // Change Password States
+  const [changePasswordCurrent, setChangePasswordCurrent] = useState('');
+  const [changePasswordNew, setChangePasswordNew] = useState('');
+  const [changePasswordConfirm, setChangePasswordConfirm] = useState('');
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isDefaultPassword, setIsDefaultPassword] = useState(() => {
+    return localStorage.getItem('isDefaultPassword') === 'true';
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Modals / Form inputs
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
@@ -303,7 +325,13 @@ export default function App() {
           totalQty: `${b.milkQtyCow + b.milkQtyBuffalo}L`,
           grandTotal: b.grandTotal,
           status: b.status,
-          pdf: b.pdfUrl || 'https://supabase.co/storage/v1/object/public/invoices/may2026_sharma.pdf'
+          pdf: b.pdfUrl || 'https://supabase.co/storage/v1/object/public/invoices/may2026_sharma.pdf',
+          milkQtyCow: b.milkQtyCow,
+          milkQtyBuffalo: b.milkQtyBuffalo,
+          totalAmount: b.totalAmount,
+          previousDue: b.previousDue,
+          extraCharges: b.extraCharges,
+          discount: b.discount
         };
       }));
 
@@ -330,7 +358,13 @@ export default function App() {
 
       // 8. Fetch notifications
       const notifs = await fetchFromBackend('/api/notifications');
-      const custNotifs = notifs.filter((n: any) => n.userId === loggedInCustomerId || n.user_id === loggedInCustomerId);
+      const readBroadcasts = JSON.parse(localStorage.getItem('doodh_read_broadcasts') || '[]');
+      const custNotifs = notifs
+        .filter((n: any) => n.userId === loggedInCustomerId || n.user_id === loggedInCustomerId || n.type === 'broadcast')
+        .map((n: any) => ({
+          ...n,
+          isRead: n.type === 'broadcast' ? readBroadcasts.includes(n.id) : (n.isRead || n.is_read)
+        }));
       custNotifs.sort((a: any, b: any) => b.sentAt ? b.sentAt.localeCompare(a.sentAt) : 1);
       setNotifications(custNotifs);
 
@@ -359,16 +393,48 @@ export default function App() {
       'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55', // cust3 - Rajesh Singh
     ];
     const channel = supabase
-      .channel('public:notifications')
+      .channel('public:realtime')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications' },
         (payload) => {
           console.log('Realtime notification received in PWA:', payload.new);
-          if (CUSTOMER_UUIDS.includes(payload.new.user_id)) {
+          if (CUSTOMER_UUIDS.includes(payload.new.user_id) || payload.new.type === 'broadcast') {
             showAlert(payload.new.title, payload.new.message);
             loadAllData();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'daily_milk_entries' },
+        (payload) => {
+          console.log('Realtime entry changed in PWA:', payload);
+          loadAllData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'customer_profiles' },
+        (payload) => {
+          console.log('Realtime customer profile changed in PWA:', payload);
+          loadAllData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions' },
+        (payload) => {
+          console.log('Realtime subscription changed in PWA:', payload);
+          loadAllData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'monthly_bills' },
+        (payload) => {
+          console.log('Realtime bill changed in PWA:', payload);
+          loadAllData();
         }
       )
       .subscribe();
@@ -386,6 +452,10 @@ export default function App() {
     localStorage.setItem('adminTab', adminTab);
   }, [adminTab]);
 
+  useEffect(() => {
+    localStorage.setItem('currentTab', currentTab);
+  }, [currentTab]);
+
   // Poll backend every 30 seconds
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -400,7 +470,13 @@ export default function App() {
         if (buffPrem) setBuffaloPremiumRate(parseFloat(buffPrem.value).toFixed(2));
 
         const notifs = await fetchFromBackend('/api/notifications');
-        const custNotifs = notifs.filter((n: any) => n.userId === loggedInCustomerId || n.user_id === loggedInCustomerId);
+        const readBroadcasts = JSON.parse(localStorage.getItem('doodh_read_broadcasts') || '[]');
+        const custNotifs = notifs
+          .filter((n: any) => n.userId === loggedInCustomerId || n.user_id === loggedInCustomerId || n.type === 'broadcast')
+          .map((n: any) => ({
+            ...n,
+            isRead: n.type === 'broadcast' ? readBroadcasts.includes(n.id) : (n.isRead || n.is_read)
+          }));
         custNotifs.sort((a: any, b: any) => b.sentAt ? b.sentAt.localeCompare(a.sentAt) : 1);
         setNotifications(custNotifs);
       } catch (err) {
@@ -416,7 +492,7 @@ export default function App() {
     const trimPass = password.trim();
 
     if (!trimEmail || !trimPass) {
-      showAlert('Validation Error', 'Please enter both email and password.');
+      showAlert('Validation Error', 'Please enter both email/phone number and password.');
       return;
     }
 
@@ -434,47 +510,62 @@ export default function App() {
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('email', trimEmail);
       localStorage.setItem('role', matchedRole);
+      if (trimPass === 'Chotabhai@123') {
+        setIsDefaultPassword(true);
+        localStorage.setItem('isDefaultPassword', 'true');
+      } else {
+        setIsDefaultPassword(false);
+        localStorage.removeItem('isDefaultPassword');
+      }
       return;
     }
 
     // Dynamic database check from users table (login via mobile number)
     try {
-      const phoneQuery = trimEmail.startsWith('+') ? trimEmail : `+91${trimEmail}`;
-      const rawPhoneQuery = trimEmail.replace(/\D/g, '');
+      let resolvedEmail = trimEmail;
+      
+      // Normalize mobile number inputs to email format
+      if (!trimEmail.includes('@')) {
+        let digits = trimEmail.replace(/\D/g, '');
+        if (digits.length === 12 && digits.startsWith('91')) {
+          digits = digits.slice(2);
+        }
+        resolvedEmail = `${digits}@doodhfarm.com`;
+      }
 
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .or(`phone.eq."${trimEmail}",phone.eq."${phoneQuery}",phone.eq."${rawPhoneQuery}",email.eq."${trimEmail}"`);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: resolvedEmail,
+        password: trimPass
+      });
 
       if (error) throw error;
 
-      if (userData && userData.length > 0) {
-        const matchedUser = userData[0];
-        let defaultPass = 'milk@123';
-        if (matchedUser.role === 'admin') defaultPass = 'admin@123';
-        if (matchedUser.role === 'delivery_staff') defaultPass = 'driver@123';
+      if (data?.user) {
+        const user = data.user;
+        const userRole = user.user_metadata?.role || 'customer';
 
-        const isValidPassword = 
-          trimPass === defaultPass || 
-          trimPass === matchedUser.phone || 
-          trimPass === matchedUser.phone.replace('+91', '') ||
-          trimPass === 'milk123';
-
-        if (isValidPassword) {
-          setRole(matchedUser.role);
-          setIsLoggedIn(true);
-          setLoggedInCustomerId(matchedUser.id);
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('email', trimEmail);
-          localStorage.setItem('role', matchedUser.role);
-          localStorage.setItem('loggedInCustomerId', matchedUser.id);
-          showAlert('Login Success 🎉', `Welcome back!`);
-          return;
-        } else {
-          showAlert('Login Failed ❌', 'Invalid password for this mobile number.');
+        // Ensure only customer role is allowed for dynamic phone/email login path
+        if (userRole !== 'customer') {
+          showAlert('Login Failed ❌', 'Only customer accounts are allowed for this login method.');
           return;
         }
+
+        setRole(userRole);
+        setIsLoggedIn(true);
+        setLoggedInCustomerId(user.id);
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('email', trimEmail);
+        localStorage.setItem('role', userRole);
+        localStorage.setItem('loggedInCustomerId', user.id);
+        if (trimPass === 'Chotabhai@123') {
+          setIsDefaultPassword(true);
+          localStorage.setItem('isDefaultPassword', 'true');
+        } else {
+          setIsDefaultPassword(false);
+          localStorage.removeItem('isDefaultPassword');
+        }
+        showAlert('Login Success 🎉', `Welcome back!`);
+        return;
       }
     } catch (err: any) {
       console.error('[Login] Supabase database login error:', err.message);
@@ -486,9 +577,66 @@ export default function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setPassword('');
+    setIsDefaultPassword(false);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('email');
     localStorage.removeItem('role');
+    localStorage.removeItem('adminTab');
+    localStorage.removeItem('currentTab');
+    localStorage.removeItem('isDefaultPassword');
+    setAdminTab('dashboard');
+    setCurrentTab('home');
+  };
+
+  const handleChangePasswordSubmit = async () => {
+    if (!changePasswordCurrent || !changePasswordNew || !changePasswordConfirm) {
+      showAlert('Validation Error ❌', 'All password fields are required.');
+      return;
+    }
+
+    if (changePasswordNew !== changePasswordConfirm) {
+      showAlert('Validation Error ❌', 'New password and confirm password do not match.');
+      return;
+    }
+
+    if (changePasswordNew.length < 6) {
+      showAlert('Validation Error ❌', 'New password must be at least 6 characters long.');
+      return;
+    }
+
+    try {
+      const url = `${API_BASE_URL}/api/change-password`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: loggedInCustomerId,
+          currentPassword: changePasswordCurrent,
+          newPassword: changePasswordNew
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert('Error ❌', data.error || 'Failed to change password.');
+        return;
+      }
+
+      showAlert('Success 🎉', 'Password changed successfully!');
+      setIsChangePasswordOpen(false);
+      setChangePasswordCurrent('');
+      setChangePasswordNew('');
+      setChangePasswordConfirm('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+
+      // Clear default password warning
+      setIsDefaultPassword(false);
+      localStorage.removeItem('isDefaultPassword');
+    } catch (err: any) {
+      showAlert('Error ❌', 'Failed to connect to the server.');
+    }
   };
 
   const updateCustomerProfileSelection = (id: string) => {
@@ -885,7 +1033,7 @@ export default function App() {
         if (!isSelected) return false;
 
         const qty = Number(quickEntryQtys[cust.id] ?? (quickEntryShift === 'morning' ? cust.morningQty : cust.eveningQty));
-        return qty > 0;
+        return qty >= 0;
       })
       .map((cust: any) => ({
         customerId: cust.id,
@@ -898,25 +1046,76 @@ export default function App() {
       }));
 
     if (entriesToLog.length === 0) {
-      showAlert('Nothing to log', 'No customers selected or all selected customers have 0L quantity.');
+      showAlert('Nothing to log', 'No customers selected.');
       return;
     }
 
+    showConfirm(
+      'Confirm Bulk Logging',
+      `Are you sure you want to log entries for all ${entriesToLog.length} selected customers?`,
+      async () => {
+        try {
+          const result = await fetchFromBackend('/api/entries/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entries: entriesToLog })
+          });
+          showAlert(
+            'Bulk Entry Done ⚡',
+            `Logged: ${result.logged} • Skipped (already exists): ${result.skipped}\nDate: ${quickEntryDate} • Shift: ${quickEntryShift}`
+          );
+          setQuickEntryQtys({});
+          setQuickEntrySelections({});
+          loadAllData();
+        } catch (err) {
+          showAlert('Error', 'Failed to log bulk entries.');
+        }
+      }
+    );
+  };
+
+  const handleSelectAllQuickEntries = (select: boolean) => {
+    const monthlyCustomers = allCustomers.filter(c => c.type === 'monthly' && c.status === 'active');
+    const newSelections = { ...quickEntrySelections };
+    monthlyCustomers.forEach(cust => {
+      const isAlreadyLogged = allEntries.some(e => e.customerId === cust.id && e.date === quickEntryDate && e.shift === quickEntryShift);
+      if (!isAlreadyLogged) {
+        newSelections[cust.id] = select;
+      }
+    });
+    setQuickEntrySelections(newSelections);
+  };
+
+  const handleSingleQuickEntry = async (cust: any) => {
+    const subQty = quickEntryShift === 'morning' ? cust.morningQty : cust.eveningQty;
+    const qty = Number(quickEntryQtys[cust.id] ?? String(subQty));
+    if (qty < 0 || isNaN(qty)) {
+      showAlert('Validation Error', 'Please enter a valid quantity.');
+      return;
+    }
+
+    setLoggingSingleId(cust.id);
     try {
-      const result = await fetchFromBackend('/api/entries/bulk', {
+      await fetchFromBackend('/api/entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: entriesToLog })
+        body: JSON.stringify({
+          customerId: cust.id,
+          date: quickEntryDate,
+          shift: quickEntryShift,
+          milkType: cust.milkType,
+          quantity: qty,
+          rate: cust.rate,
+          note: '',
+          createdBy: 'admin'
+        })
       });
-      showAlert(
-        'Bulk Entry Done ⚡',
-        `Logged: ${result.logged} • Skipped (already exists): ${result.skipped}\nDate: ${quickEntryDate} • Shift: ${quickEntryShift}`
-      );
-      setQuickEntryQtys({});
-      setQuickEntrySelections({});
+      showAlert('Logged 🥛', `Logged ${qty}L for ${cust.name}`);
       loadAllData();
     } catch (err) {
-      showAlert('Error', 'Failed to log bulk entries.');
+      showAlert('Error', 'Failed to log entry.');
+    } finally {
+      setLoggingSingleId(null);
     }
   };
 
@@ -939,23 +1138,39 @@ export default function App() {
     const resolvedRate = rateMap[cashSaleMilkType];
     const liters = resolvedRate > 0 ? (Number(cashSaleAmount) / resolvedRate).toFixed(2) : '0';
     try {
-      await fetchFromBackend('/api/daily-cash', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: cashSaleDate,
-          amount: Number(cashSaleAmount),
-          milkType: resolvedMilkType,
-          rate: resolvedRate,
-          note: `Walk-in cash: ₹${cashSaleAmount} (${cashSaleMilkType.replace('_', ' ')})`
-        })
-      });
-      showAlert('Cash Sale Logged 💵', `₹${cashSaleAmount} recorded • ~${liters}L of ${cashSaleMilkType.replace('_', ' ')} milk`);
+      if (editingCashSaleId) {
+        await fetchFromBackend(`/api/daily-cash/${editingCashSaleId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: cashSaleDate,
+            amount: Number(cashSaleAmount),
+            milkType: resolvedMilkType,
+            rate: resolvedRate,
+            note: `Walk-in cash: ₹${cashSaleAmount} (${cashSaleMilkType.replace('_', ' ')})`
+          })
+        });
+        showAlert('Cash Sale Updated 💵', `₹${cashSaleAmount} updated • ~${liters}L of ${cashSaleMilkType.replace('_', ' ')} milk`);
+      } else {
+        await fetchFromBackend('/api/daily-cash', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: cashSaleDate,
+            amount: Number(cashSaleAmount),
+            milkType: resolvedMilkType,
+            rate: resolvedRate,
+            note: `Walk-in cash: ₹${cashSaleAmount} (${cashSaleMilkType.replace('_', ' ')})`
+          })
+        });
+        showAlert('Cash Sale Logged 💵', `₹${cashSaleAmount} recorded • ~${liters}L of ${cashSaleMilkType.replace('_', ' ')} milk`);
+      }
       setIsCashSaleOpen(false);
       setCashSaleAmount('');
+      setEditingCashSaleId(null);
       loadAllData();
     } catch (err) {
-      showAlert('Error', 'Failed to log cash sale.');
+      showAlert('Error', editingCashSaleId ? 'Failed to update cash sale.' : 'Failed to log cash sale.');
     }
   };
 
@@ -987,6 +1202,42 @@ export default function App() {
         })
       });
       showAlert('Cash Sale Logged 💵', `₹${amount} recorded • ~${liters}L of ${activeType.replace('_', ' ')} milk`);
+      setManualCashAmount('');
+      loadAllData();
+    } catch (err) {
+      showAlert('Error', 'Failed to log cash sale.');
+    }
+  };
+
+  const handleQuickLiterSale = async (liters: number, type?: 'cow' | 'buffalo_standard' | 'buffalo_premium') => {
+    const activeType = type || literSaleMilkType;
+    const milkTypeMap: Record<string, string> = {
+      cow: 'cow',
+      buffalo_standard: 'buffalo',
+      buffalo_premium: 'buffalo'
+    };
+    const rateMap: Record<string, number> = {
+      cow: Number(cowRate),
+      buffalo_standard: Number(buffaloRate),
+      buffalo_premium: Number(buffaloPremiumRate)
+    };
+    const resolvedMilkType = milkTypeMap[activeType];
+    const resolvedRate = rateMap[activeType];
+    const amount = Number((liters * resolvedRate).toFixed(2));
+    try {
+      await fetchFromBackend('/api/daily-cash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: quickEntryDate,
+          amount: amount,
+          milkType: resolvedMilkType,
+          rate: resolvedRate,
+          note: `Quick Liter Sale: ${liters}L (${activeType.replace('_', ' ')})`
+        })
+      });
+      showAlert('Cash Sale Logged 💵', `Recorded: ~${liters}L of ${activeType.replace('_', ' ')} milk (₹${amount})`);
+      setManualLiterQty('');
       loadAllData();
     } catch (err) {
       showAlert('Error', 'Failed to log cash sale.');
@@ -1007,9 +1258,35 @@ export default function App() {
     }
   };
 
-  const handleSendWhatsAppBill = async (billId: string) => {
+  const handleSendWhatsAppBill = async (bill: any, customer: any) => {
     try {
-      await fetchFromBackend(`/api/bills/${billId}/send-whatsapp`, { method: 'POST' });
+      await fetchFromBackend(`/api/bills/${bill.id}/send-whatsapp`, { method: 'POST' });
+      
+      if (customer && customer.mobile) {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthName = monthNames[bill.month - 1] || 'Month';
+
+        const messageText = `🥛 *Doodh Hisaab Bill Statement* 🥛\n\n` +
+          `Hello *${customer.name}*,\n` +
+          `Your milk bill for *${monthName} ${bill.year}* is ready:\n\n` +
+          `• *Cow Milk:* ${bill.milkQtyCow}L\n` +
+          `• *Buffalo Milk:* ${bill.milkQtyBuffalo}L\n` +
+          `• *Total Cost:* ₹${bill.totalAmount}\n` +
+          (bill.previousDue > 0 ? `• *Previous Due:* ₹${bill.previousDue}\n` : '') +
+          `• *Grand Total:* *₹${bill.grandTotal}*\n` +
+          `• *Status:* *${bill.status.toUpperCase()}*\n\n` +
+          `Thank you for choosing Doodh Hisaab! 🙏`;
+          
+        const encodedText = encodeURIComponent(messageText);
+        let formattedMobile = customer.mobile.replace(/\D/g, '');
+        if (formattedMobile.length === 10) {
+          formattedMobile = '91' + formattedMobile;
+        }
+        
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedMobile}&text=${encodedText}`;
+        window.open(whatsappUrl, '_blank');
+      }
+
       showAlert('WhatsApp Sent 📲', 'Invoice details sent to customer mobile.');
       loadAllData();
     } catch (err) {
@@ -1044,20 +1321,15 @@ export default function App() {
       return;
     }
     try {
-      await Promise.all(
-        allCustomers.map((c: any) =>
-          fetchFromBackend('/api/notifications', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: c.id,
-              title: announcementTitle,
-              message: announcementMsg,
-              type: 'promo'
-            })
-          })
-        )
-      );
+      await fetchFromBackend('/api/notifications/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: announcementTitle,
+          message: announcementMsg,
+          type: 'promo'
+        })
+      });
       setIsAnnouncementOpen(false);
       setAnnouncementTitle('');
       setAnnouncementMsg('');
@@ -1273,7 +1545,7 @@ export default function App() {
                 <span className="font-bold text-emerald-400 px-2 py-0.5 bg-emerald-950/60 rounded">Customer</span>
                 <div className="text-right">
                   <p className="text-slate-300 font-mono">customer@doodhfarm.com</p>
-                  <p className="text-slate-500 font-mono italic">milk@123</p>
+                  <p className="text-slate-500 font-mono italic">Chotabhai@123</p>
                 </div>
               </div>
               <div className="flex justify-between items-center py-1">
@@ -1291,11 +1563,11 @@ export default function App() {
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-                  Email Address
+                  Email Address / Phone Number
                 </label>
                 <input
-                  type="email"
-                  placeholder="e.g. admin@doodhfarm.com"
+                  type="text"
+                  placeholder="e.g. 9557712155 or admin@doodhfarm.com"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -1329,13 +1601,35 @@ export default function App() {
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
                   Password
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                        <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                        <line x1="2" y1="2" x2="22" y2="22" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button 
@@ -1520,6 +1814,30 @@ export default function App() {
                   >
                     Create Broadcast Alert
                   </button>
+
+                  {/* Past broadcasts */}
+                  {notifications.filter((n: any) => n.type === 'broadcast').length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-800 space-y-2">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Recent Broadcasts
+                      </span>
+                      <div className="max-h-40 overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
+                        {notifications
+                          .filter((n: any) => n.type === 'broadcast')
+                          .map((notif: any) => (
+                            <div key={notif.id} className="bg-slate-950/40 border border-slate-800/80 p-2.5 rounded-xl space-y-1">
+                              <div className="flex justify-between items-center">
+                                <p className="font-bold text-[11px] text-slate-200">{notif.title}</p>
+                                <span className="text-[8px] text-slate-500 font-medium">
+                                  {notif.sentAt ? new Date(notif.sentAt).toLocaleDateString() : ''}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 leading-relaxed">{notif.message}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Daily Sales Ledger Section */}
@@ -1637,12 +1955,27 @@ export default function App() {
                                   </div>
                                   <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-900 pt-1.5 mt-1">
                                     <span>~{cs.liters.toFixed(2)}L @ ₹{cs.rate}/L</span>
-                                    <button 
-                                      onClick={() => handleDeleteCashSale(cs.id)}
-                                      className="text-[9px] font-bold text-red-450 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2 py-0.5 rounded transition-all"
-                                    >
-                                      Delete
-                                    </button>
+                                    <div className="flex gap-2">
+                                      <button 
+                                        onClick={() => {
+                                          setEditingCashSaleId(cs.id);
+                                          setCashSaleAmount(String(cs.amount));
+                                          setCashSaleDate(cs.date);
+                                          const milkTypeOption = cs.milkType === 'cow' ? 'cow' : (cs.rate === Number(buffaloPremiumRate) ? 'buffalo_premium' : 'buffalo_standard');
+                                          setCashSaleMilkType(milkTypeOption);
+                                          setIsCashSaleOpen(true);
+                                        }}
+                                        className="text-[9px] font-bold text-emerald-405 bg-emerald-950/40 border border-emerald-900/50 hover:bg-emerald-600 hover:text-white px-2 py-0.5 rounded transition-all"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button 
+                                        onClick={() => handleDeleteCashSale(cs.id)}
+                                        className="text-[9px] font-bold text-red-450 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2 py-0.5 rounded transition-all"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
                                   </div>
                                   {cs.note && (
                                     <p className="text-[9px] text-slate-500 italic mt-0.5">Note: {cs.note}</p>
@@ -1769,10 +2102,10 @@ export default function App() {
                           </span>
                         </div>
                         
-                        <div className="text-[10px] text-slate-400 space-y-1 bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/40">
-                          <p><span className="text-slate-600">Address:</span> {cust.address || 'Not set'}</p>
-                          <p><span className="text-slate-600">Balance:</span> <span className={cust.balance < 0 ? 'text-red-400' : 'text-emerald-400'}>₹{cust.balance}</span></p>
-                          <p><span className="text-slate-600">Custom Rate:</span> ₹{cust.rate}/L ({cust.milkType === 'cow' ? '🐄 Cow' : '🐼 Buffalo'})</p>
+                        <div className="text-[10px] text-slate-300 space-y-1 bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/40">
+                          <p><span className="text-slate-500">Address:</span> {cust.address || 'Not set'}</p>
+                          <p><span className="text-slate-500">Balance:</span> <span className={cust.balance < 0 ? 'text-red-400' : 'text-emerald-400'}>₹{cust.balance}</span></p>
+                          <p><span className="text-slate-500">Custom Rate:</span> ₹{cust.rate}/L ({cust.milkType === 'cow' ? '🐄 Cow' : '🐼 Buffalo'})</p>
                         </div>
 
                         {custSubs.length > 0 ? (
@@ -1788,7 +2121,7 @@ export default function App() {
                           <p className="text-[9px] text-red-400/80 italic font-medium">• No active daily subscriptions</p>
                         )}
 
-                        <div className="flex gap-2 pt-1 border-t border-slate-800/30">
+                        <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-800/30">
                           <button 
                             onClick={() => {
                               setSelectedCustCalendar(cust);
@@ -1838,9 +2171,9 @@ export default function App() {
                             <button 
                               key={sub.id}
                               onClick={() => handleUpdateSubStatus(sub.id, sub.status === 'active' ? 'paused' : 'active')}
-                              className="bg-orange-500/10 hover:bg-orange-500 text-orange-400 hover:text-white border border-orange-500/20 text-[9px] font-bold px-2.5 py-1.5 rounded-lg transition-all"
+                              className="bg-orange-500/10 hover:bg-orange-500 text-orange-400 hover:text-white border border-orange-500/20 text-[9px] font-bold px-2.5 py-1.5 rounded-lg flex-1 transition-all"
                             >
-                              {sub.status === 'active' ? 'Pause' : 'Resume'} {sub.milkType === 'cow' ? 'Cow' : 'Buffalo'}
+                              {sub.status === 'active' ? 'Pause' : 'Resume'} {sub.milkType === 'cow' ? 'Cow' : 'Buffalo'} ({sub.deliveryTime})
                             </button>
                           ))}
                         </div>
@@ -1947,66 +2280,256 @@ export default function App() {
                       Custom +
                     </button>
                   </div>
+
+                  {/* Manual Amount Input and Log Button */}
+                  <div className="flex gap-2 items-center pt-2 border-t border-slate-850/60 mt-1">
+                    <input 
+                      type="number"
+                      placeholder="Or enter amount manually (₹)..."
+                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                      value={manualCashAmount}
+                      onChange={(e) => setManualCashAmount(e.target.value)}
+                    />
+                    <button 
+                      onClick={() => {
+                        if (!manualCashAmount || Number(manualCashAmount) <= 0) {
+                          showAlert('Validation Error', 'Please enter a valid rupee amount.');
+                          return;
+                        }
+                        handleQuickCashSale(Number(manualCashAmount));
+                      }}
+                      className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-amber-500/10"
+                    >
+                      Log Sale ⚡
+                    </button>
+                  </div>
+                </div>
+
+                {/* Walk-in Liter Sale Quick Collection Panel */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2.5 text-left">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">🥛 Quick Walk-in Liter Sale</span>
+                    <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
+                      <button 
+                        onClick={() => setLiterSaleMilkType('cow')}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
+                          literSaleMilkType === 'cow' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                        }`}
+                      >
+                        Cow
+                      </button>
+                      <button 
+                        onClick={() => setLiterSaleMilkType('buffalo_standard')}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
+                          literSaleMilkType === 'buffalo_standard' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                        }`}
+                      >
+                        Buff Std
+                      </button>
+                      <button 
+                        onClick={() => setLiterSaleMilkType('buffalo_premium')}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
+                          literSaleMilkType === 'buffalo_premium' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                        }`}
+                      >
+                        Buff Prem
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    {[0.5, 1, 2, 5].map(liters => (
+                      <button 
+                        key={liters}
+                        onClick={() => handleQuickLiterSale(liters)}
+                        className="flex-1 bg-slate-950 hover:bg-amber-600/10 border border-slate-800 hover:border-amber-500/30 text-slate-200 hover:text-amber-400 text-xs font-bold py-2 rounded-xl transition-all"
+                      >
+                        {liters}L
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Manual Liters Input and Log Button */}
+                  <div className="flex gap-2 items-center pt-2 border-t border-slate-850/60 mt-1">
+                    <input 
+                      type="number"
+                      step="0.1"
+                      placeholder="Or enter liters manually (L)..."
+                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                      value={manualLiterQty}
+                      onChange={(e) => setManualLiterQty(e.target.value)}
+                    />
+                    <button 
+                      onClick={() => {
+                        if (!manualLiterQty || Number(manualLiterQty) <= 0) {
+                          showAlert('Validation Error', 'Please enter a valid liter quantity.');
+                          return;
+                        }
+                        handleQuickLiterSale(Number(manualLiterQty));
+                      }}
+                      className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-amber-500/10"
+                    >
+                      Log Sale ⚡
+                    </button>
+                  </div>
+                </div>
+
+                {/* Daily Cash Sales Summary Banner */}
+                {(() => {
+                  const dateSales = allCashSales.filter(cs => cs.date === quickEntryDate);
+                  const totalCash = dateSales.reduce((sum, cs) => sum + cs.amount, 0);
+                  const totalLiters = dateSales.reduce((sum, cs) => sum + cs.liters, 0);
+                  return (
+                    <div className="grid grid-cols-2 gap-3 bg-slate-950/40 border border-slate-850 p-2.5 rounded-xl text-center">
+                      <div className="bg-slate-900/40 border border-slate-850/50 p-2 rounded-lg">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">Total Rupee Sale</span>
+                        <span className="text-xs font-extrabold text-amber-450 mt-0.5 block">₹{totalCash.toLocaleString()}</span>
+                      </div>
+                      <div className="bg-slate-900/40 border border-slate-850/50 p-2 rounded-lg">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">Total Liter Sale</span>
+                        <span className="text-xs font-extrabold text-emerald-450 mt-0.5 block">{totalLiters.toFixed(2)}L</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Search Bar for Quick Entry list */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="🔍 Search customer for logging..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-505 focus:outline-none focus:border-emerald-500/50 transition-all"
+                    value={quickEntrySearchQuery}
+                    onChange={(e) => setQuickEntrySearchQuery(e.target.value)}
+                  />
+                  {quickEntrySearchQuery && (
+                    <button
+                      onClick={() => setQuickEntrySearchQuery('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-slate-500 hover:text-slate-300 bg-transparent border-0 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Select All / Deselect All Controls */}
+                <div className="flex gap-2 justify-end text-xs pt-1">
+                  <button 
+                    onClick={() => handleSelectAllQuickEntries(true)}
+                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>☑</span> Select All
+                  </button>
+                  <button 
+                    onClick={() => handleSelectAllQuickEntries(false)}
+                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>☒</span> Deselect All
+                  </button>
                 </div>
 
                 {/* Quick Entry Customers list */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
                   <div className="grid grid-cols-12 bg-slate-800/50 p-2.5 border-b border-slate-800 text-[9px] font-bold text-slate-400 uppercase tracking-wide text-center items-center">
                     <span className="col-span-2">Select</span>
-                    <span className="col-span-5 text-left">Customer</span>
+                    <span className="col-span-4 text-left">Customer</span>
                     <span className="col-span-2">Sub Qty</span>
-                    <span className="col-span-3">Today's Qty</span>
+                    <span className="col-span-2">Today's Qty</span>
+                    <span className="col-span-2">Action</span>
                   </div>
 
                   <div className="divide-y divide-slate-800">
-                    {allCustomers.filter(c => c.type === 'monthly' && c.status === 'active').map(cust => {
-                      const subQty = quickEntryShift === 'morning' ? cust.morningQty : cust.eveningQty;
-                      const currentQty = quickEntryQtys[cust.id] ?? String(subQty);
-                      const isAlreadyLogged = allEntries.some(e => e.customerId === cust.id && e.date === quickEntryDate && e.shift === quickEntryShift);
-                      const isSelected = quickEntrySelections[cust.id] !== false;
-                      const label = cust.milkType === 'buffalo'
-                        ? (cust.buffaloTier === 'premium' ? '🐼⭐' : '🐼')
-                        : '🐄';
-                      return (
-                        <div key={cust.id} className="grid grid-cols-12 p-2.5 items-center text-center text-xs">
-                          {/* Checkbox / Status */}
-                          <div className="col-span-2 flex items-center justify-center">
-                            {isAlreadyLogged ? (
-                              <span className="text-[9px] text-emerald-450">✅</span>
-                            ) : (
-                              <input 
-                                type="checkbox"
-                                className="w-3.5 h-3.5 bg-slate-950 border border-slate-800 rounded focus:ring-0 focus:ring-offset-0 text-emerald-500 accent-emerald-500 cursor-pointer"
-                                checked={isSelected}
-                                onChange={(e) => setQuickEntrySelections(prev => ({ ...prev, [cust.id]: e.target.checked }))}
-                              />
-                            )}
+                    {(() => {
+                      const filtered = allCustomers
+                        .filter(c => c.type === 'monthly' && c.status === 'active')
+                        .filter(cust => {
+                          const q = quickEntrySearchQuery.trim().toLowerCase();
+                          if (!q) return true;
+                          return (
+                            (cust.name || '').toLowerCase().includes(q) ||
+                            (cust.mobile || '').toLowerCase().includes(q)
+                          );
+                        });
+
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="text-center py-6">
+                            <p className="text-xs text-slate-500">No matching customers found</p>
                           </div>
-                          {/* Customer Name */}
-                          <div className="col-span-5 text-left">
-                            <p className="font-bold text-slate-350 truncate">{cust.name}</p>
-                            <p className="text-[9px] text-slate-500">{label} ₹{cust.rate}/L</p>
+                        );
+                      }
+
+                      return filtered.map(cust => {
+                        const subQty = quickEntryShift === 'morning' ? cust.morningQty : cust.eveningQty;
+                        const currentQty = quickEntryQtys[cust.id] ?? String(subQty);
+                        const isAlreadyLogged = allEntries.some(e => e.customerId === cust.id && e.date === quickEntryDate && e.shift === quickEntryShift);
+                        const isSelected = quickEntrySelections[cust.id] !== false;
+                        const label = cust.milkType === 'buffalo'
+                          ? (cust.buffaloTier === 'premium' ? '🐼⭐' : '🐼')
+                          : '🐄';
+                        const isLoggingThis = loggingSingleId === cust.id;
+
+                        return (
+                          <div key={cust.id} className="grid grid-cols-12 p-2.5 items-center text-center text-xs">
+                            {/* Checkbox / Status */}
+                            <div className="col-span-2 flex items-center justify-center">
+                              {isAlreadyLogged ? (
+                                <span className="text-[9px] text-emerald-450">✅</span>
+                              ) : (
+                                <input 
+                                  type="checkbox"
+                                  className="w-3.5 h-3.5 bg-slate-950 border border-slate-800 rounded focus:ring-0 focus:ring-offset-0 text-emerald-500 accent-emerald-500 cursor-pointer"
+                                  checked={isSelected}
+                                  onChange={(e) => setQuickEntrySelections(prev => ({ ...prev, [cust.id]: e.target.checked }))}
+                                />
+                              )}
+                            </div>
+                            {/* Customer Name */}
+                            <div className="col-span-4 text-left">
+                              <p className="font-bold text-slate-350 truncate">{cust.name}</p>
+                              <p className="text-[9px] text-slate-500">{label} ₹{cust.rate}/L</p>
+                            </div>
+                            {/* Sub Qty */}
+                            <span className="col-span-2 text-slate-400 font-bold">{subQty}L</span>
+                            {/* Today's Qty input */}
+                            <div className="col-span-2 flex justify-center">
+                              {isAlreadyLogged ? (
+                                <span className="text-slate-500 font-bold">{currentQty}L</span>
+                              ) : (
+                                <input 
+                                  type="number"
+                                  className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg text-xs font-bold text-slate-200 text-center py-1 w-12 focus:outline-none focus:border-emerald-500/70"
+                                  value={currentQty}
+                                  onChange={(e) => setQuickEntryQtys(prev => ({ ...prev, [cust.id]: e.target.value }))}
+                                />
+                              )}
+                            </div>
+                            {/* Action column (Log single / Logged badge) */}
+                            <div className="col-span-2 flex justify-center">
+                              {isAlreadyLogged ? (
+                                <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/85 border border-emerald-900/60 rounded px-1.5 py-0.5 whitespace-nowrap">
+                                  Logged
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => handleSingleQuickEntry(cust)}
+                                  disabled={isLoggingThis}
+                                  className={`w-full max-w-[50px] bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 hover:border-emerald-500 text-[9px] font-bold py-1 rounded transition-all flex items-center justify-center min-h-[22px] cursor-pointer ${
+                                    isLoggingThis ? 'opacity-50 cursor-not-allowed' : ''
+                                  }`}
+                                >
+                                  {isLoggingThis ? (
+                                    <span className="custom-spinner !w-2 !h-2"></span>
+                                  ) : (
+                                    'Log'
+                                  )}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          {/* Sub Qty */}
-                          <span className="col-span-2 text-slate-405 font-bold">{subQty}L</span>
-                          {/* Today's Qty input or Logged badge */}
-                          <div className="col-span-3 flex justify-center">
-                            {isAlreadyLogged ? (
-                              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-900/50 rounded px-1.5 py-0.5 whitespace-nowrap">
-                                Logged
-                              </span>
-                            ) : (
-                              <input 
-                                type="number"
-                                className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg text-xs font-bold text-slate-200 text-center py-1 w-14 focus:outline-none focus:border-emerald-500/70"
-                                value={currentQty}
-                                onChange={(e) => setQuickEntryQtys(prev => ({ ...prev, [cust.id]: e.target.value }))}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
 
@@ -2019,31 +2542,57 @@ export default function App() {
                 </button>
 
                 {/* Cash Sales list */}
-                {allCashSales.length > 0 && (
-                  <div className="space-y-2.5 pt-2">
-                    <h4 className="text-xs font-bold text-slate-400">Recent Walk-in Sales ({quickEntryDate})</h4>
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
-                      {allCashSales.filter(cs => cs.date === quickEntryDate).length === 0 ? (
-                        <p className="text-[10px] text-slate-550 text-center py-4">No cash sales logged for this date.</p>
-                      ) : (
-                        allCashSales.filter(cs => cs.date === quickEntryDate).map(cs => (
-                          <div key={cs.id} className="p-3 text-xs flex justify-between items-center text-left">
-                            <div>
-                              <p className="font-bold text-slate-300">💵 ₹{cs.amount} • {cs.liters.toFixed(2)}L</p>
-                              <p className="text-[9px] text-slate-500">Milk: {cs.milkType === 'cow' ? 'Cow' : 'Buffalo'} • Rate: ₹{cs.rate}/L</p>
+                {(() => {
+                  const dateSales = allCashSales.filter(cs => cs.date === quickEntryDate);
+                  const totalCash = dateSales.reduce((sum, cs) => sum + cs.amount, 0);
+                  const totalLiters = dateSales.reduce((sum, cs) => sum + cs.liters, 0);
+
+                  return allCashSales.length > 0 && (
+                    <div className="space-y-2.5 pt-2">
+                      <h4 className="text-xs font-bold text-slate-400 flex justify-between items-center">
+                        <span>Recent Walk-in Sales ({quickEntryDate})</span>
+                        <span className="text-[10px] text-amber-400 font-bold bg-amber-950/40 border border-amber-900/30 rounded-lg px-2 py-0.5">
+                          Total: ₹{totalCash} | {totalLiters.toFixed(2)}L
+                        </span>
+                      </h4>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
+                        {dateSales.length === 0 ? (
+                          <p className="text-[10px] text-slate-500 text-center py-4">No cash sales logged for this date.</p>
+                        ) : (
+                          dateSales.map(cs => (
+                            <div key={cs.id} className="p-3 text-xs flex justify-between items-center text-left">
+                              <div>
+                                <p className="font-bold text-slate-300">💵 ₹{cs.amount} • {cs.liters.toFixed(2)}L</p>
+                                <p className="text-[9px] text-slate-500">Milk: {cs.milkType === 'cow' ? 'Cow' : 'Buffalo'} • Rate: ₹{cs.rate}/L</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setEditingCashSaleId(cs.id);
+                                    setCashSaleAmount(String(cs.amount));
+                                    setCashSaleDate(cs.date);
+                                    const milkTypeOption = cs.milkType === 'cow' ? 'cow' : (cs.rate === Number(buffaloPremiumRate) ? 'buffalo_premium' : 'buffalo_standard');
+                                    setCashSaleMilkType(milkTypeOption);
+                                    setIsCashSaleOpen(true);
+                                  }}
+                                  className="text-[9px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded transition-all"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteCashSale(cs.id)}
+                                  className="text-[9px] font-bold text-red-400 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2.5 py-1 rounded transition-all"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
-                            <button 
-                              onClick={() => handleDeleteCashSale(cs.id)}
-                              className="text-[9px] font-bold text-red-400 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2.5 py-1 rounded transition-all"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        ))
-                      )}
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
 
@@ -2177,7 +2726,7 @@ export default function App() {
                           </button>
                         )}
                         <button 
-                          onClick={() => handleSendWhatsAppBill(bill.id)}
+                          onClick={() => handleSendWhatsAppBill(bill, customer)}
                           className="bg-slate-850 hover:bg-slate-800 text-slate-300 text-[9px] font-bold px-3 py-1.5 rounded-lg flex-1 border border-slate-700/50 transition-all"
                         >
                           Send WhatsApp
@@ -2250,35 +2799,35 @@ export default function App() {
           <div className="bg-slate-900 border-t border-slate-800 py-2.5 px-3 flex justify-between items-center shrink-0">
             <button 
               onClick={() => setAdminTab('dashboard')} 
-              className={`flex-1 flex flex-col items-center gap-1 transition-all ${adminTab === 'dashboard' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'dashboard' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">🏠</span>
               <span className="text-[8px] font-bold">Dashboard</span>
             </button>
             <button 
               onClick={() => setAdminTab('customers')} 
-              className={`flex-1 flex flex-col items-center gap-1 transition-all ${adminTab === 'customers' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'customers' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">👥</span>
               <span className="text-[8px] font-bold">Customers</span>
             </button>
             <button 
               onClick={() => setAdminTab('quick_entry')} 
-              className={`flex-1 flex flex-col items-center gap-1 transition-all ${adminTab === 'quick_entry' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'quick_entry' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">⚡</span>
               <span className="text-[8px] font-bold">Quick entry</span>
             </button>
             <button 
               onClick={() => setAdminTab('entries')} 
-              className={`flex-1 flex flex-col items-center gap-1 transition-all ${adminTab === 'entries' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'entries' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">📝</span>
               <span className="text-[8px] font-bold">Entries</span>
             </button>
             <button 
               onClick={() => setAdminTab('billing')} 
-              className={`flex-1 flex flex-col items-center gap-1 transition-all ${adminTab === 'billing' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'billing' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">💳</span>
               <span className="text-[8px] font-bold">Bills</span>
@@ -2400,6 +2949,24 @@ export default function App() {
           {/* Home Tab */}
           {currentTab === 'home' && (
             <div className="space-y-4">
+              {isDefaultPassword && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-lg mt-0.5">⚠️</span>
+                    <div className="flex-1 text-xs">
+                      <p className="font-bold text-amber-400">Security Warning</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">You are currently logged in with the default password. For safety, please change your password immediately.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsChangePasswordOpen(true)}
+                    className="w-full bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-white border border-amber-500/30 py-2 rounded-xl text-[10px] font-bold transition-all mt-1 cursor-pointer"
+                  >
+                    Change Password Now
+                  </button>
+                </div>
+              )}
+
               {/* Daily Rates */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <span className="text-[9px] font-extrabold text-emerald-500 tracking-widest block mb-3 uppercase">
@@ -2426,31 +2993,38 @@ export default function App() {
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setIsBookingOpen(true)}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all"
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">⚡</span>
                   <span className="text-xs font-bold text-slate-300">Book Instantly</span>
                 </button>
                 <button 
                   onClick={() => setIsSubscribeOpen(true)}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all"
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">📅</span>
                   <span className="text-xs font-bold text-slate-300">Subscribe Daily</span>
                 </button>
                 <button 
                   onClick={() => setIsSellingOpen(true)}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all"
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">🐄</span>
                   <span className="text-xs font-bold text-slate-300">Sell Cattle</span>
                 </button>
                 <button 
                   onClick={() => setIsSupportOpen(true)}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all"
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">💬</span>
                   <span className="text-xs font-bold text-slate-300">Help Support</span>
+                </button>
+                <button 
+                  onClick={() => setIsChangePasswordOpen(true)}
+                  className="col-span-2 bg-slate-900 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <span className="text-lg">🔐</span>
+                  <span className="text-xs font-bold text-slate-300">Change Account Password</span>
                 </button>
               </div>
 
@@ -2600,7 +3174,11 @@ export default function App() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Monthly Statements</h3>
               
               {bills.map(bill => (
-                <div key={bill.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div 
+                  key={bill.id} 
+                  onClick={() => setSelectedBillSummary(bill)}
+                  className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 cursor-pointer hover:border-slate-700 transition-all"
+                >
                   <div className="flex justify-between items-start text-xs">
                     <div>
                       <h4 className="font-bold text-slate-200">{bill.month}</h4>
@@ -2612,42 +3190,6 @@ export default function App() {
                   </div>
 
                   <p className="text-sm font-bold text-slate-200">Total Due: ₹{bill.grandTotal}</p>
-
-                  <div className="flex gap-2 pt-1 border-t border-slate-800/30">
-                    {bill.status === 'pending' && (
-                      <button 
-                        onClick={async () => {
-                          try {
-                            await fetchFromBackend('/api/payments', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                customerId: loggedInCustomerId,
-                                amount: bill.grandTotal,
-                                date: new Date().toISOString().split('T')[0],
-                                status: 'paid',
-                                method: 'upi',
-                                note: `Paid ${bill.month} bill via mobile app simulation`
-                              })
-                            });
-                            showAlert('Payment Successful 🎉', `Your payment of ₹${bill.grandTotal} has been recorded.`);
-                            loadAllData();
-                          } catch (err) {
-                            showAlert('Error', 'Failed to submit payment.');
-                          }
-                        }}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold py-2 rounded-xl flex-1 transition-all shadow-md shadow-emerald-500/10"
-                      >
-                        Pay Now
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => showAlert('Download 📈', `PDF Invoice URL:\n${bill.pdf}`)}
-                      className="bg-slate-800 hover:bg-slate-700 text-slate-350 text-[10px] font-bold px-3 py-2 rounded-xl border border-slate-700/50 transition-all"
-                    >
-                      PDF Invoice
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
@@ -2659,35 +3201,35 @@ export default function App() {
         <div className="bg-slate-900 border-t border-slate-800 py-2.5 px-3 flex justify-between items-center shrink-0">
           <button 
             onClick={() => setCurrentTab('home')}
-            className={`flex-1 flex flex-col items-center gap-1 transition-all ${currentTab === 'home' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'home' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">🏠</span>
             <span className="text-[8px] font-bold">Home</span>
           </button>
           <button 
             onClick={() => setCurrentTab('subscribe')}
-            className={`flex-1 flex flex-col items-center gap-1 transition-all ${currentTab === 'subscribe' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'subscribe' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📅</span>
             <span className="text-[8px] font-bold">Subscribe</span>
           </button>
           <button 
             onClick={() => setCurrentTab('logs')}
-            className={`flex-1 flex flex-col items-center gap-1 transition-all ${currentTab === 'logs' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'logs' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📊</span>
             <span className="text-[8px] font-bold">History</span>
           </button>
           <button 
             onClick={() => setCurrentTab('calendar')}
-            className={`flex-1 flex flex-col items-center gap-1 transition-all ${currentTab === 'calendar' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'calendar' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📅</span>
             <span className="text-[8px] font-bold">Calendar</span>
           </button>
           <button 
             onClick={() => setCurrentTab('billing')}
-            className={`flex-1 flex flex-col items-center gap-1 transition-all ${currentTab === 'billing' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'billing' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">💳</span>
             <span className="text-[8px] font-bold">Billing</span>
@@ -2718,6 +3260,85 @@ export default function App() {
         </div>
 
         {/* --- DYNAMIC CUSTOM OVERLAYS (MODALS) --- */}
+
+        {/* BILL SUMMARY MODAL */}
+        {selectedBillSummary && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-[100] animate-fade-in">
+            <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 w-full max-w-[280px] space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                <h3 className="font-extrabold text-sm text-slate-100">Bill Summary</h3>
+                <button 
+                  onClick={() => setSelectedBillSummary(null)}
+                  className="text-slate-400 hover:text-slate-200 text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-2 text-xs text-slate-400">
+                <div className="flex justify-between">
+                  <span>Billing Month:</span>
+                  <span className="font-bold text-slate-200">{selectedBillSummary.month}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className={`font-bold uppercase ${selectedBillSummary.status === 'paid' ? 'text-emerald-450' : 'text-red-400'}`}>
+                    {selectedBillSummary.status}
+                  </span>
+                </div>
+                
+                <div className="border-t border-slate-800/50 pt-2 space-y-1.5">
+                  {selectedBillSummary.milkQtyCow > 0 && (
+                    <div className="flex justify-between">
+                      <span>Cow Milk:</span>
+                      <span className="text-slate-200">{selectedBillSummary.milkQtyCow} L</span>
+                    </div>
+                  )}
+                  {selectedBillSummary.milkQtyBuffalo > 0 && (
+                     <div className="flex justify-between">
+                       <span>Buffalo Milk:</span>
+                       <span className="text-slate-200">{selectedBillSummary.milkQtyBuffalo} L</span>
+                     </div>
+                  )}
+                  <div className="flex justify-between border-t border-slate-800/20 pt-1.5">
+                    <span>This Month Cost:</span>
+                    <span className="text-slate-200">₹{selectedBillSummary.totalAmount}</span>
+                  </div>
+                  {selectedBillSummary.previousDue > 0 && (
+                    <div className="flex justify-between">
+                      <span>Previous Due:</span>
+                      <span className="text-slate-200">₹{selectedBillSummary.previousDue}</span>
+                    </div>
+                  )}
+                  {selectedBillSummary.extraCharges > 0 && (
+                    <div className="flex justify-between">
+                      <span>Extra Charges:</span>
+                      <span className="text-slate-200">₹{selectedBillSummary.extraCharges}</span>
+                    </div>
+                  )}
+                  {selectedBillSummary.discount > 0 && (
+                    <div className="flex justify-between text-emerald-400">
+                      <span>Discount:</span>
+                      <span>-₹{selectedBillSummary.discount}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-slate-800 pt-2 flex justify-between text-xs font-bold text-slate-100">
+                  <span>Total Amount Due:</span>
+                  <span className="text-emerald-450 font-extrabold">₹{selectedBillSummary.grandTotal}</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedBillSummary(null)}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* CUSTOM ALERT POPUP */}
         {customAlert && (
@@ -2771,11 +3392,23 @@ export default function App() {
                 <button 
                   onClick={async () => {
                     try {
-                      await Promise.all(
-                        notifications
-                          .filter((n: any) => !n.isRead)
-                          .map((n: any) => fetchFromBackend(`/api/notifications/${n.id}/read`, { method: 'PUT' }))
-                      );
+                      const unreadNotifs = notifications.filter((n: any) => !n.isRead);
+                      const broadcastIds = unreadNotifs.filter((n: any) => n.type === 'broadcast').map((n: any) => n.id);
+                      if (broadcastIds.length > 0) {
+                        const readBroadcasts = JSON.parse(localStorage.getItem('doodh_read_broadcasts') || '[]');
+                        broadcastIds.forEach((id: string) => {
+                          if (!readBroadcasts.includes(id)) readBroadcasts.push(id);
+                        });
+                        localStorage.setItem('doodh_read_broadcasts', JSON.stringify(readBroadcasts));
+                      }
+
+                      const personalNotifs = unreadNotifs.filter((n: any) => n.type !== 'broadcast');
+                      if (personalNotifs.length > 0) {
+                        await Promise.all(
+                          personalNotifs.map((n: any) => fetchFromBackend(`/api/notifications/${n.id}/read`, { method: 'PUT' }))
+                        );
+                      }
+
                       showAlert('Success', 'All notifications marked as read.');
                       loadAllData();
                     } catch (err) {
@@ -2798,7 +3431,15 @@ export default function App() {
                       onClick={async () => {
                         if (!notif.isRead) {
                           try {
-                            await fetchFromBackend(`/api/notifications/${notif.id}/read`, { method: 'PUT' });
+                            if (notif.type === 'broadcast') {
+                              const readBroadcasts = JSON.parse(localStorage.getItem('doodh_read_broadcasts') || '[]');
+                              if (!readBroadcasts.includes(notif.id)) {
+                                readBroadcasts.push(notif.id);
+                                localStorage.setItem('doodh_read_broadcasts', JSON.stringify(readBroadcasts));
+                              }
+                            } else {
+                              await fetchFromBackend(`/api/notifications/${notif.id}/read`, { method: 'PUT' });
+                            }
                             loadAllData();
                           } catch (err) {
                             console.error(err);
@@ -3102,6 +3743,139 @@ export default function App() {
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
                   Submit Inquiry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CHANGE PASSWORD OVERLAY */}
+        {isChangePasswordOpen && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end animate-fade-in">
+            <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 text-left">
+              <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Change Account Password</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 block mb-1">CURRENT PASSWORD</label>
+                  <div className="relative">
+                    <input 
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      placeholder="Enter current password"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
+                      value={changePasswordCurrent}
+                      onChange={(e) => setChangePasswordCurrent(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                      aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showCurrentPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                          <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                          <line x1="2" y1="2" x2="22" y2="22" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 block mb-1">NEW PASSWORD</label>
+                  <div className="relative">
+                    <input 
+                      type={showNewPassword ? 'text' : 'password'}
+                      placeholder="Enter new password"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
+                      value={changePasswordNew}
+                      onChange={(e) => setChangePasswordNew(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                      aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showNewPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                          <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                          <line x1="2" y1="2" x2="22" y2="22" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 block mb-1">CONFIRM NEW PASSWORD</label>
+                  <div className="relative">
+                    <input 
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirm new password"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
+                      value={changePasswordConfirm}
+                      onChange={(e) => setChangePasswordConfirm(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                          <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                          <line x1="2" y1="2" x2="22" y2="22" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button 
+                  onClick={() => {
+                    setIsChangePasswordOpen(false);
+                    setChangePasswordCurrent('');
+                    setChangePasswordNew('');
+                    setChangePasswordConfirm('');
+                    setShowCurrentPassword(false);
+                    setShowNewPassword(false);
+                    setShowConfirmPassword(false);
+                  }}
+                  className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleChangePasswordSubmit}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
+                >
+                  Change Password
                 </button>
               </div>
             </div>
@@ -3566,13 +4340,13 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">CATTLE MILK</label>
-                    <p className="text-xs font-semibold text-slate-405 uppercase">
+                    <p className="text-xs font-semibold text-slate-400 uppercase">
                       {editEntryMilkType === 'cow' ? '🐄 Cow' : '🐼 Buffalo'} Milk
                     </p>
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">SHIFT / DATE</label>
-                    <p className="text-xs font-semibold text-slate-405">
+                    <p className="text-xs font-semibold text-slate-400">
                       {editEntryShift.toUpperCase()} • {editEntryDate}
                     </p>
                   </div>
@@ -3899,7 +4673,9 @@ export default function App() {
         {isCashSaleOpen && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[92%] overflow-y-auto animate-slide-up">
-              <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Log Walk-in Cash Sale</h3>
+              <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">
+                {editingCashSaleId ? 'Edit Walk-in Cash Sale' : 'Log Walk-in Cash Sale'}
+              </h3>
               
               <div className="space-y-3 text-xs">
                 <div>
@@ -3974,7 +4750,7 @@ export default function App() {
 
               <div className="flex gap-2 pt-2">
                 <button 
-                  onClick={() => { setIsCashSaleOpen(false); setCashSaleAmount(''); }}
+                  onClick={() => { setIsCashSaleOpen(false); setCashSaleAmount(''); setEditingCashSaleId(null); }}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
@@ -3983,7 +4759,7 @@ export default function App() {
                   onClick={handleCashSale}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md"
                 >
-                  Record Cash Sale
+                  {editingCashSaleId ? 'Update Cash Sale' : 'Record Cash Sale'}
                 </button>
               </div>
             </div>

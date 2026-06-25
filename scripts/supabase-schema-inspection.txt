@@ -1,0 +1,185 @@
+=== TABLE: payments ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - amount: type=number, format=numeric, default=undefined, desc=
+  - date: type=string, format=date, default=CURRENT_DATE, desc=
+  - status: type=string, format=text, default=paid, desc=
+  - method: type=string, format=text, default=undefined, desc=
+  - razorpay_payment_id: type=string, format=text, default=undefined, desc=
+  - note: type=string, format=text, default=undefined, desc=
+  - receipt_url: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: animal_listings ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - seller_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - animal_type: type=string, format=text, default=undefined, desc=
+  - breed: type=string, format=text, default=undefined, desc=
+  - age_years: type=number, format=numeric, default=undefined, desc=
+  - daily_milk_yield: type=number, format=numeric, default=undefined, desc=
+  - price: type=number, format=numeric, default=undefined, desc=
+  - description: type=string, format=text, default=undefined, desc=
+  - contact_number: type=string, format=text, default=undefined, desc=
+  - location: type=string, format=text, default=undefined, desc=
+  - status: type=string, format=text, default=pending, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: daily_cash_sales ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - date: type=string, format=date, default=undefined, desc=
+  - amount: type=number, format=numeric, default=undefined, desc=
+  - note: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=now(), desc=
+  - milk_type: type=string, format=text, default=cow, desc=
+  - rate: type=number, format=numeric, default=60, desc=
+  - liters: type=number, format=numeric, default=0, desc=
+=== TABLE: orders ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - date: type=string, format=date, default=CURRENT_DATE, desc=
+  - shift: type=string, format=text, default=undefined, desc=
+  - milk_type: type=string, format=text, default=undefined, desc=
+  - quantity: type=number, format=numeric, default=undefined, desc=
+  - rate: type=number, format=numeric, default=undefined, desc=
+  - total_amount: type=number, format=numeric, default=undefined, desc=
+  - status: type=string, format=text, default=pending, desc=
+  - payment_status: type=string, format=text, default=pending, desc=
+  - address_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `addresses.id`.<fk table='addresses' column='id'/>
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: cms_pages ===
+  - slug: type=string, format=text, default=undefined, desc=Note: This is a Primary Key.<pk/>
+  - title: type=string, format=text, default=undefined, desc=
+  - content: type=string, format=text, default=undefined, desc=
+  - updated_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: subscriptions ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - milk_type: type=string, format=text, default=undefined, desc=
+  - quantity: type=number, format=numeric, default=undefined, desc=
+  - delivery_time: type=string, format=text, default=morning, desc=
+  - status: type=string, format=text, default=active, desc=
+  - paused_at: type=string, format=timestamp with time zone, default=undefined, desc=
+  - resumed_at: type=string, format=timestamp with time zone, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: gallery_images ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - image_url: type=string, format=text, default=undefined, desc=
+  - category: type=string, format=text, default=undefined, desc=
+  - description: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: settings ===
+  - key: type=string, format=text, default=undefined, desc=Note: This is a Primary Key.<pk/>
+  - value: type=string, format=text, default=undefined, desc=
+  - description: type=string, format=text, default=undefined, desc=
+=== TABLE: milk_rates ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - effective_date: type=string, format=date, default=CURRENT_DATE, desc=
+  - cow_rate: type=number, format=numeric, default=undefined, desc=
+  - buffalo_rate: type=number, format=numeric, default=undefined, desc=
+  - season_multiplier: type=number, format=numeric, default=1, desc=
+  - note: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: delivery_assignments ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - staff_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `delivery_staff.id`.<fk table='delivery_staff' column='id'/>
+  - date: type=string, format=date, default=CURRENT_DATE, desc=
+  - order_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `orders.id`.<fk table='orders' column='id'/>
+  - subscription_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `subscriptions.id`.<fk table='subscriptions' column='id'/>
+  - status: type=string, format=text, default=assigned, desc=
+  - delivered_at: type=string, format=timestamp with time zone, default=undefined, desc=
+  - notes: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: daily_milk_entries ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - date: type=string, format=date, default=CURRENT_DATE, desc=
+  - shift: type=string, format=text, default=undefined, desc=
+  - milk_type: type=string, format=text, default=undefined, desc=
+  - quantity: type=number, format=numeric, default=undefined, desc=
+  - rate: type=number, format=numeric, default=undefined, desc=
+  - amount: type=number, format=numeric, default=undefined, desc=
+  - note: type=string, format=text, default=undefined, desc=
+  - created_by: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `users.id`.<fk table='users' column='id'/>
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: contact_inquiries ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - name: type=string, format=text, default=undefined, desc=
+  - mobile: type=string, format=text, default=undefined, desc=
+  - email: type=string, format=text, default=undefined, desc=
+  - message: type=string, format=text, default=undefined, desc=
+  - status: type=string, format=text, default=pending, desc=
+  - reply_message: type=string, format=text, default=undefined, desc=
+  - replied_at: type=string, format=timestamp with time zone, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: customer_profiles ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - name: type=string, format=text, default=undefined, desc=
+  - mobile: type=string, format=text, default=undefined, desc=
+  - address: type=string, format=text, default=undefined, desc=
+  - status: type=string, format=text, default=active, desc=
+  - billing_type: type=string, format=text, default=monthly, desc=
+  - cow_rate: type=number, format=numeric, default=60, desc=
+  - buffalo_rate: type=number, format=numeric, default=70, desc=
+  - balance: type=number, format=numeric, default=0, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+  - buffalo_tier: type=string, format=text, default=standard, desc=
+  - buffalo_premium_rate: type=number, format=numeric, default=80, desc=
+=== TABLE: animal_images ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - listing_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `animal_listings.id`.<fk table='animal_listings' column='id'/>
+  - image_url: type=string, format=text, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: addresses ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - address_line: type=string, format=text, default=undefined, desc=
+  - landmark: type=string, format=text, default=undefined, desc=
+  - city: type=string, format=text, default=undefined, desc=
+  - state: type=string, format=text, default=undefined, desc=
+  - pincode: type=string, format=text, default=undefined, desc=
+  - is_default: type=boolean, format=boolean, default=false, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: users ===
+  - id: type=string, format=uuid, default=undefined, desc=Note: This is a Primary Key.<pk/>
+  - email: type=string, format=text, default=undefined, desc=
+  - phone: type=string, format=text, default=undefined, desc=
+  - role: type=string, format=text, default=customer, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: delivery_staff ===
+  - id: type=string, format=uuid, default=undefined, desc=Note: This is a Primary Key.<pk/> This is a Foreign Key to `users.id`.<fk table='users' column='id'/>
+  - name: type=string, format=text, default=undefined, desc=
+  - mobile: type=string, format=text, default=undefined, desc=
+  - vehicle_no: type=string, format=text, default=undefined, desc=
+  - status: type=string, format=text, default=active, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: notifications ===
+  - id: type=string, format=uuid, default=gen_random_uuid(), desc=Note: This is a Primary Key.<pk/>
+  - user_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `users.id`.<fk table='users' column='id'/>
+  - title: type=string, format=text, default=undefined, desc=
+  - message: type=string, format=text, default=undefined, desc=
+  - type: type=string, format=text, default=undefined, desc=
+  - is_read: type=boolean, format=boolean, default=false, desc=
+  - sent_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: monthly_bills ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - customer_id: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `customer_profiles.id`.<fk table='customer_profiles' column='id'/>
+  - month: type=integer, format=integer, default=undefined, desc=
+  - year: type=integer, format=integer, default=undefined, desc=
+  - milk_qty_cow: type=number, format=numeric, default=0, desc=
+  - milk_qty_buffalo: type=number, format=numeric, default=0, desc=
+  - total_amount: type=number, format=numeric, default=undefined, desc=
+  - previous_due: type=number, format=numeric, default=0, desc=
+  - extra_charges: type=number, format=numeric, default=0, desc=
+  - discount: type=number, format=numeric, default=0, desc=
+  - grand_total: type=number, format=numeric, default=undefined, desc=
+  - status: type=string, format=text, default=pending, desc=
+  - pdf_url: type=string, format=text, default=undefined, desc=
+  - whatsapp_status: type=string, format=text, default=unsent, desc=
+  - whatsapp_sent_at: type=string, format=timestamp with time zone, default=undefined, desc=
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
+=== TABLE: audit_logs ===
+  - id: type=string, format=uuid, default=extensions.uuid_generate_v4(), desc=Note: This is a Primary Key.<pk/>
+  - table_name: type=string, format=text, default=undefined, desc=
+  - action_type: type=string, format=text, default=undefined, desc=
+  - old_data: type=undefined, format=jsonb, default=undefined, desc=
+  - new_data: type=undefined, format=jsonb, default=undefined, desc=
+  - performed_by: type=string, format=uuid, default=undefined, desc=Note: This is a Foreign Key to `users.id`.<fk table='users' column='id'/>
+  - created_at: type=string, format=timestamp with time zone, default=timezone('utc'::text, now()), desc=
