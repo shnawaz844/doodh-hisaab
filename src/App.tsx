@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 
 // Dynamically resolve backend base URL
-const API_BASE_URL = `http://${window.location.hostname}:5000`;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? `http://${window.location.hostname}:5000`
+    : `${window.location.protocol}//${window.location.hostname}`);
 console.log('[Doodh Hisaab PWA] Connecting to backend at:', API_BASE_URL);
 
 // Request helper
