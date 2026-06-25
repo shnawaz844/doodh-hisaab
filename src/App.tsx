@@ -47,7 +47,7 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'subscribe' | 'logs' | 'calendar' | 'billing'>(() => {
     return (localStorage.getItem('currentTab') as any) || 'home';
   });
-  
+
   // Custom Alert / Confirm states
   const [customAlert, setCustomAlert] = useState<{ title: string; message: string } | null>(null);
   const [customConfirm, setCustomConfirm] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
@@ -348,7 +348,7 @@ export default function App() {
         price: l.price,
         location: l.location,
         sellerPhone: l.contactNumber,
-        image: l.images?.[0] || (l.animalType === 'cow' 
+        image: l.images?.[0] || (l.animalType === 'cow'
           ? 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500'
           : 'https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=500')
       })));
@@ -523,7 +523,7 @@ export default function App() {
     // Dynamic database check from users table (login via mobile number)
     try {
       let resolvedEmail = trimEmail;
-      
+
       // Normalize mobile number inputs to email format
       if (!trimEmail.includes('@')) {
         let digits = trimEmail.replace(/\D/g, '');
@@ -715,7 +715,7 @@ export default function App() {
           location: sellLocation,
           status: 'pending',
           images: [
-            sellType === 'cow' 
+            sellType === 'cow'
               ? 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500'
               : 'https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=500'
           ]
@@ -841,7 +841,7 @@ export default function App() {
       }
       setIsAddCustOpen(false);
       showAlert('Success 🎉', 'New customer profile registered successfully!');
-      
+
       // Reset inputs
       setNewCustName('');
       setNewCustMobile('');
@@ -854,7 +854,7 @@ export default function App() {
       setNewCustCowRate('');
       setNewCustBuffaloRate('');
       setNewCustBuffaloTier('standard');
-      
+
       loadAllData();
     } catch (err) {
       showAlert('Error', 'Failed to register customer on backend.');
@@ -1261,7 +1261,7 @@ export default function App() {
   const handleSendWhatsAppBill = async (bill: any, customer: any) => {
     try {
       await fetchFromBackend(`/api/bills/${bill.id}/send-whatsapp`, { method: 'POST' });
-      
+
       if (customer && customer.mobile) {
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthName = monthNames[bill.month - 1] || 'Month';
@@ -1276,13 +1276,13 @@ export default function App() {
           `• *Grand Total:* *₹${bill.grandTotal}*\n` +
           `• *Status:* *${bill.status.toUpperCase()}*\n\n` +
           `Thank you for choosing Doodh Hisaab! 🙏`;
-          
+
         const encodedText = encodeURIComponent(messageText);
         let formattedMobile = customer.mobile.replace(/\D/g, '');
         if (formattedMobile.length === 10) {
           formattedMobile = '91' + formattedMobile;
         }
-        
+
         const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedMobile}&text=${encodedText}`;
         window.open(whatsappUrl, '_blank');
       }
@@ -1343,7 +1343,7 @@ export default function App() {
   // Render PWA Calendar Component
   const renderCalendar = (customerId: string) => {
     const monthNames = [
-      "January", "February", "March", "April", "May", "June", 
+      "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ];
 
@@ -1400,7 +1400,7 @@ export default function App() {
         showAlert('No Delivery Logged', `No milk was delivered on ${day.date}.`);
         return;
       }
-      
+
       let details = `Date: ${day.date}\n\n`;
       dayEntries.forEach((e: any) => {
         details += `• Shift: ${e.shift.charAt(0).toUpperCase() + e.shift.slice(1)}\n`;
@@ -1412,7 +1412,7 @@ export default function App() {
         if (e.createdBy) details += `  Logged By: ${e.createdBy === 'staff1' ? 'Staff Driver' : 'Admin'}\n`;
         details += `\n`;
       });
-      
+
       showAlert('Delivery Details 🥛', details);
     };
 
@@ -1456,11 +1456,10 @@ export default function App() {
               <button
                 key={`day-${day.dayNum}`}
                 onClick={() => handleDayPress(day)}
-                className={`aspect-square rounded-lg p-1 flex flex-col justify-between items-stretch text-left transition-all border ${
-                  isToday 
-                    ? 'bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.15)]' 
+                className={`aspect-square rounded-lg p-1 flex flex-col justify-between items-stretch text-left transition-all border ${isToday
+                    ? 'bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
                     : 'bg-slate-800/30 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60'
-                }`}
+                  }`}
               >
                 <span className={`text-[9px] font-extrabold self-end ${isToday ? 'text-emerald-400' : 'text-slate-400'}`}>
                   {day.dayNum}
@@ -1528,36 +1527,6 @@ export default function App() {
             <p className="text-xs text-slate-400 mt-1">Dairy Farm Management Platform</p>
           </div>
 
-          {/* Credentials Card */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 mb-6">
-            <h3 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <span>🔐</span> Simulation Logins
-            </h3>
-            <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                <span className="font-bold text-purple-400 px-2 py-0.5 bg-purple-950/60 rounded">Admin</span>
-                <div className="text-right">
-                  <p className="text-slate-300 font-mono">admin@doodhfarm.com</p>
-                  <p className="text-slate-500 font-mono italic">admin@123</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                <span className="font-bold text-emerald-400 px-2 py-0.5 bg-emerald-950/60 rounded">Customer</span>
-                <div className="text-right">
-                  <p className="text-slate-300 font-mono">customer@doodhfarm.com</p>
-                  <p className="text-slate-500 font-mono italic">Chotabhai@123</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="font-bold text-amber-400 px-2 py-0.5 bg-amber-950/60 rounded">Driver</span>
-                <div className="text-right">
-                  <p className="text-slate-300 font-mono">driver@doodhfarm.com</p>
-                  <p className="text-slate-500 font-mono italic">driver@123</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Sign In Form */}
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-5 backdrop-blur-xl">
             <div className="space-y-4">
@@ -1581,14 +1550,13 @@ export default function App() {
                   </label>
                   <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
                     {allCustomers.map(cust => (
-                      <button 
-                        key={cust.id} 
+                      <button
+                        key={cust.id}
                         onClick={() => updateCustomerProfileSelection(cust.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
-                          loggedInCustomerId === cust.id 
-                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${loggedInCustomerId === cust.id
+                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                             : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200'
-                        }`}
+                          }`}
                       >
                         {cust.name}
                       </button>
@@ -1632,7 +1600,7 @@ export default function App() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleLogin}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/10 mt-6"
               >
@@ -1666,7 +1634,7 @@ export default function App() {
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="text-[10px] font-bold text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-slate-700/50 transition-all"
               >
@@ -1677,7 +1645,7 @@ export default function App() {
 
           {/* Subpages Scroll Container */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-            
+
             {/* Dashboard Subtab */}
             {adminTab === 'dashboard' && (
               <div className="space-y-4">
@@ -1722,20 +1690,19 @@ export default function App() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-400 w-24">Cow Milk</span>
-                      <input 
+                      <input
                         type="number"
                         className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-center w-20 text-slate-200"
                         value={cowRate}
                         onChange={(e) => setCowRate(e.target.value)}
                       />
-                      <button 
+                      <button
                         onClick={() => handleUpdateRate('cow_base_rate', cowRate)}
                         disabled={updatingRates['cow_base_rate']}
-                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${
-                          updatingRates['cow_base_rate'] 
-                            ? 'opacity-50 cursor-not-allowed' 
+                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${updatingRates['cow_base_rate']
+                            ? 'opacity-50 cursor-not-allowed'
                             : 'hover:bg-emerald-600 hover:text-white'
-                        }`}
+                          }`}
                       >
                         {updatingRates['cow_base_rate'] ? (
                           <>
@@ -1749,20 +1716,19 @@ export default function App() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-400 w-24">Buffalo Std</span>
-                      <input 
+                      <input
                         type="number"
                         className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-center w-20 text-slate-200"
                         value={buffaloRate}
                         onChange={(e) => setBuffaloRate(e.target.value)}
                       />
-                      <button 
+                      <button
                         onClick={() => handleUpdateRate('buffalo_base_rate', buffaloRate)}
                         disabled={updatingRates['buffalo_base_rate']}
-                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${
-                          updatingRates['buffalo_base_rate'] 
-                            ? 'opacity-50 cursor-not-allowed' 
+                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${updatingRates['buffalo_base_rate']
+                            ? 'opacity-50 cursor-not-allowed'
                             : 'hover:bg-emerald-600 hover:text-white'
-                        }`}
+                          }`}
                       >
                         {updatingRates['buffalo_base_rate'] ? (
                           <>
@@ -1776,20 +1742,19 @@ export default function App() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-400 w-24">Buff Premium</span>
-                      <input 
+                      <input
                         type="number"
                         className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-center w-20 text-slate-200"
                         value={buffaloPremiumRate}
                         onChange={(e) => setBuffaloPremiumRate(e.target.value)}
                       />
-                      <button 
+                      <button
                         onClick={() => handleUpdateRate('buffalo_premium_rate', buffaloPremiumRate)}
                         disabled={updatingRates['buffalo_premium_rate']}
-                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${
-                          updatingRates['buffalo_premium_rate'] 
-                            ? 'opacity-50 cursor-not-allowed' 
+                        className={`bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 transition-all flex-1 flex items-center justify-center gap-1.5 min-h-[26px] ${updatingRates['buffalo_premium_rate']
+                            ? 'opacity-50 cursor-not-allowed'
                             : 'hover:bg-emerald-600 hover:text-white'
-                        }`}
+                          }`}
                       >
                         {updatingRates['buffalo_premium_rate'] ? (
                           <>
@@ -1808,7 +1773,7 @@ export default function App() {
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                   <h4 className="text-xs font-bold text-slate-200 block mb-1">Broadcast Announcement 📣</h4>
                   <p className="text-[10px] text-slate-500 mb-3">Send push alert notifications to all dairy users instantly.</p>
-                  <button 
+                  <button
                     onClick={() => setIsAnnouncementOpen(true)}
                     className="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 py-2 rounded-xl text-xs font-bold transition-all"
                   >
@@ -1844,7 +1809,7 @@ export default function App() {
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
                     <h4 className="text-xs font-bold text-slate-200">Daily Sales Ledger 📋</h4>
-                    <input 
+                    <input
                       type="date"
                       className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none w-32"
                       value={dashboardDate}
@@ -1910,7 +1875,7 @@ export default function App() {
                                     <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-900 pt-1.5 mt-1">
                                       <span>{entry.quantity}L @ ₹{entry.rate}/L</span>
                                       <div className="flex gap-2">
-                                        <button 
+                                        <button
                                           onClick={() => {
                                             setEditEntryId(entry.id);
                                             setEditEntryCustId(entry.customerId);
@@ -1926,7 +1891,7 @@ export default function App() {
                                         >
                                           Edit
                                         </button>
-                                        <button 
+                                        <button
                                           onClick={() => handleDeleteEntry(entry.id)}
                                           className="text-[9px] font-bold text-red-400 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2 py-0.5 rounded transition-all"
                                         >
@@ -1956,7 +1921,7 @@ export default function App() {
                                   <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-900 pt-1.5 mt-1">
                                     <span>~{cs.liters.toFixed(2)}L @ ₹{cs.rate}/L</span>
                                     <div className="flex gap-2">
-                                      <button 
+                                      <button
                                         onClick={() => {
                                           setEditingCashSaleId(cs.id);
                                           setCashSaleAmount(String(cs.amount));
@@ -1969,7 +1934,7 @@ export default function App() {
                                       >
                                         Edit
                                       </button>
-                                      <button 
+                                      <button
                                         onClick={() => handleDeleteCashSale(cs.id)}
                                         className="text-[9px] font-bold text-red-450 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2 py-0.5 rounded transition-all"
                                       >
@@ -2010,13 +1975,13 @@ export default function App() {
                         </div>
                         <p className="text-[10px] text-slate-400">Volume: {order.quantity}L | Date: {order.date}</p>
                         <div className="flex gap-2 pt-1">
-                          <button 
+                          <button
                             onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
                             className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex-1 transition-all"
                           >
                             Accept & Deliver
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleUpdateOrderStatus(order.id, 'cancelled')}
                             className="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all"
                           >
@@ -2037,7 +2002,7 @@ export default function App() {
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Customers ({allCustomers.length})
                   </h3>
-                  <button 
+                  <button
                     onClick={() => {
                       setNewCustCowRate(cowRate);
                       setNewCustBuffaloRate(newCustBuffaloTier === 'premium' ? buffaloPremiumRate : buffaloRate);
@@ -2095,13 +2060,12 @@ export default function App() {
                             <h4 className="text-xs font-bold text-slate-200">{cust.name}</h4>
                             <p className="text-[10px] text-slate-500 mt-0.5">📞 {cust.mobile}</p>
                           </div>
-                          <span className={`text-[9px] font-bold uppercase rounded px-2 py-0.5 ${
-                            cust.type === 'prepaid' ? 'bg-blue-950/60 text-blue-400 border border-blue-900/50' : 'bg-slate-950 text-slate-400 border border-slate-800'
-                          }`}>
+                          <span className={`text-[9px] font-bold uppercase rounded px-2 py-0.5 ${cust.type === 'prepaid' ? 'bg-blue-950/60 text-blue-400 border border-blue-900/50' : 'bg-slate-950 text-slate-400 border border-slate-800'
+                            }`}>
                             {cust.type === 'prepaid' ? 'Prepaid Wallet' : 'Monthly Ledger'}
                           </span>
                         </div>
-                        
+
                         <div className="text-[10px] text-slate-300 space-y-1 bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/40">
                           <p><span className="text-slate-500">Address:</span> {cust.address || 'Not set'}</p>
                           <p><span className="text-slate-500">Balance:</span> <span className={cust.balance < 0 ? 'text-red-400' : 'text-emerald-400'}>₹{cust.balance}</span></p>
@@ -2122,7 +2086,7 @@ export default function App() {
                         )}
 
                         <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-800/30">
-                          <button 
+                          <button
                             onClick={() => {
                               setSelectedCustCalendar(cust);
                               setCalMonth(new Date().getMonth());
@@ -2133,7 +2097,7 @@ export default function App() {
                           >
                             View Calendar
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
                               setSelectedCustomer(cust);
                               setEditCustName(cust.name);
@@ -2168,7 +2132,7 @@ export default function App() {
                             Edit Profile
                           </button>
                           {custSubs.map(sub => (
-                            <button 
+                            <button
                               key={sub.id}
                               onClick={() => handleUpdateSubStatus(sub.id, sub.status === 'active' ? 'paused' : 'active')}
                               className="bg-orange-500/10 hover:bg-orange-500 text-orange-400 hover:text-white border border-orange-500/20 text-[9px] font-bold px-2.5 py-1.5 rounded-lg flex-1 transition-all"
@@ -2189,7 +2153,7 @@ export default function App() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-1">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">⚡ Bulk Entry Quick Fill</h3>
-                  <button 
+                  <button
                     onClick={() => setIsCashSaleOpen(true)}
                     className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all shadow-md shadow-amber-500/10"
                   >
@@ -2202,7 +2166,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">DATE</label>
-                    <input 
+                    <input
                       type="date"
                       className="bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 w-full"
                       value={quickEntryDate}
@@ -2212,19 +2176,17 @@ export default function App() {
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">SHIFT</label>
                     <div className="flex bg-slate-950 p-1 border border-slate-800 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setQuickEntryShift('morning')}
-                        className={`flex-1 text-[10px] py-1 font-bold rounded-md transition-all ${
-                          quickEntryShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[10px] py-1 font-bold rounded-md transition-all ${quickEntryShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Morning
                       </button>
-                      <button 
+                      <button
                         onClick={() => setQuickEntryShift('evening')}
-                        className={`flex-1 text-[10px] py-1 font-bold rounded-md transition-all ${
-                          quickEntryShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[10px] py-1 font-bold rounded-md transition-all ${quickEntryShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Evening
                       </button>
@@ -2237,27 +2199,24 @@ export default function App() {
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">💵 Quick Walk-in Cash Sale</span>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setCashSaleMilkType('cow')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          cashSaleMilkType === 'cow' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${cashSaleMilkType === 'cow' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Cow
                       </button>
-                      <button 
+                      <button
                         onClick={() => setCashSaleMilkType('buffalo_standard')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          cashSaleMilkType === 'buffalo_standard' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${cashSaleMilkType === 'buffalo_standard' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Buff Std
                       </button>
-                      <button 
+                      <button
                         onClick={() => setCashSaleMilkType('buffalo_premium')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          cashSaleMilkType === 'buffalo_premium' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${cashSaleMilkType === 'buffalo_premium' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Buff Prem
                       </button>
@@ -2265,7 +2224,7 @@ export default function App() {
                   </div>
                   <div className="flex gap-2">
                     {[20, 30, 50, 100].map(amount => (
-                      <button 
+                      <button
                         key={amount}
                         onClick={() => handleQuickCashSale(amount)}
                         className="flex-1 bg-slate-950 hover:bg-amber-600/10 border border-slate-800 hover:border-amber-500/30 text-slate-200 hover:text-amber-400 text-xs font-bold py-2 rounded-xl transition-all"
@@ -2273,7 +2232,7 @@ export default function App() {
                         ₹{amount}
                       </button>
                     ))}
-                    <button 
+                    <button
                       onClick={() => setIsCashSaleOpen(true)}
                       className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition-all shadow-md shadow-amber-500/10 flex-none"
                     >
@@ -2283,14 +2242,14 @@ export default function App() {
 
                   {/* Manual Amount Input and Log Button */}
                   <div className="flex gap-2 items-center pt-2 border-t border-slate-850/60 mt-1">
-                    <input 
+                    <input
                       type="number"
                       placeholder="Or enter amount manually (₹)..."
                       className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
                       value={manualCashAmount}
                       onChange={(e) => setManualCashAmount(e.target.value)}
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         if (!manualCashAmount || Number(manualCashAmount) <= 0) {
                           showAlert('Validation Error', 'Please enter a valid rupee amount.');
@@ -2310,36 +2269,33 @@ export default function App() {
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">🥛 Quick Walk-in Liter Sale</span>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setLiterSaleMilkType('cow')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          literSaleMilkType === 'cow' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${literSaleMilkType === 'cow' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Cow
                       </button>
-                      <button 
+                      <button
                         onClick={() => setLiterSaleMilkType('buffalo_standard')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          literSaleMilkType === 'buffalo_standard' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${literSaleMilkType === 'buffalo_standard' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Buff Std
                       </button>
-                      <button 
+                      <button
                         onClick={() => setLiterSaleMilkType('buffalo_premium')}
-                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${
-                          literSaleMilkType === 'buffalo_premium' ? 'bg-amber-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8px] font-bold px-2 py-0.5 rounded transition-all ${literSaleMilkType === 'buffalo_premium' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Buff Prem
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     {[0.5, 1, 2, 5].map(liters => (
-                      <button 
+                      <button
                         key={liters}
                         onClick={() => handleQuickLiterSale(liters)}
                         className="flex-1 bg-slate-950 hover:bg-amber-600/10 border border-slate-800 hover:border-amber-500/30 text-slate-200 hover:text-amber-400 text-xs font-bold py-2 rounded-xl transition-all"
@@ -2351,7 +2307,7 @@ export default function App() {
 
                   {/* Manual Liters Input and Log Button */}
                   <div className="flex gap-2 items-center pt-2 border-t border-slate-850/60 mt-1">
-                    <input 
+                    <input
                       type="number"
                       step="0.1"
                       placeholder="Or enter liters manually (L)..."
@@ -2359,7 +2315,7 @@ export default function App() {
                       value={manualLiterQty}
                       onChange={(e) => setManualLiterQty(e.target.value)}
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         if (!manualLiterQty || Number(manualLiterQty) <= 0) {
                           showAlert('Validation Error', 'Please enter a valid liter quantity.');
@@ -2414,13 +2370,13 @@ export default function App() {
 
                 {/* Select All / Deselect All Controls */}
                 <div className="flex gap-2 justify-end text-xs pt-1">
-                  <button 
+                  <button
                     onClick={() => handleSelectAllQuickEntries(true)}
                     className="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <span>☑</span> Select All
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleSelectAllQuickEntries(false)}
                     className="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                   >
@@ -2476,7 +2432,7 @@ export default function App() {
                               {isAlreadyLogged ? (
                                 <span className="text-[9px] text-emerald-450">✅</span>
                               ) : (
-                                <input 
+                                <input
                                   type="checkbox"
                                   className="w-3.5 h-3.5 bg-slate-950 border border-slate-800 rounded focus:ring-0 focus:ring-offset-0 text-emerald-500 accent-emerald-500 cursor-pointer"
                                   checked={isSelected}
@@ -2496,7 +2452,7 @@ export default function App() {
                               {isAlreadyLogged ? (
                                 <span className="text-slate-500 font-bold">{currentQty}L</span>
                               ) : (
-                                <input 
+                                <input
                                   type="number"
                                   className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg text-xs font-bold text-slate-200 text-center py-1 w-12 focus:outline-none focus:border-emerald-500/70"
                                   value={currentQty}
@@ -2514,9 +2470,8 @@ export default function App() {
                                 <button
                                   onClick={() => handleSingleQuickEntry(cust)}
                                   disabled={isLoggingThis}
-                                  className={`w-full max-w-[50px] bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 hover:border-emerald-500 text-[9px] font-bold py-1 rounded transition-all flex items-center justify-center min-h-[22px] cursor-pointer ${
-                                    isLoggingThis ? 'opacity-50 cursor-not-allowed' : ''
-                                  }`}
+                                  className={`w-full max-w-[50px] bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 hover:border-emerald-500 text-[9px] font-bold py-1 rounded transition-all flex items-center justify-center min-h-[22px] cursor-pointer ${isLoggingThis ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
                                 >
                                   {isLoggingThis ? (
                                     <span className="custom-spinner !w-2 !h-2"></span>
@@ -2534,7 +2489,7 @@ export default function App() {
                 </div>
 
                 {/* Log button */}
-                <button 
+                <button
                   onClick={handleBulkEntry}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -2566,7 +2521,7 @@ export default function App() {
                                 <p className="text-[9px] text-slate-500">Milk: {cs.milkType === 'cow' ? 'Cow' : 'Buffalo'} • Rate: ₹{cs.rate}/L</p>
                               </div>
                               <div className="flex gap-2">
-                                <button 
+                                <button
                                   onClick={() => {
                                     setEditingCashSaleId(cs.id);
                                     setCashSaleAmount(String(cs.amount));
@@ -2579,7 +2534,7 @@ export default function App() {
                                 >
                                   Edit
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => handleDeleteCashSale(cs.id)}
                                   className="text-[9px] font-bold text-red-400 bg-red-950/40 border border-red-900/50 hover:bg-red-650 hover:text-white px-2.5 py-1 rounded transition-all"
                                 >
@@ -2601,7 +2556,7 @@ export default function App() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Milk Delivery Logs</h3>
-                  <button 
+                  <button
                     onClick={() => setIsAddEntryOpen(true)}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all"
                   >
@@ -2625,7 +2580,7 @@ export default function App() {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <button 
+                        <button
                           onClick={() => {
                             setEditEntryId(entry.id);
                             setEditEntryCustId(entry.customerId);
@@ -2641,7 +2596,7 @@ export default function App() {
                         >
                           Edit
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteEntry(entry.id)}
                           className="bg-red-500/10 hover:bg-red-550 border border-red-500/20 hover:border-red-500/30 text-red-400 hover:text-white text-[9px] font-bold px-3 py-2 rounded-lg transition-all"
                         >
@@ -2661,11 +2616,11 @@ export default function App() {
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
                   <h4 className="text-xs font-bold text-slate-200">Generate Customer Bills</h4>
                   <p className="text-[10px] text-slate-500">Calculate delivery logs and update ledger statements for a specific month.</p>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[9px] font-bold text-slate-500 block mb-1">MONTH (1-12)</label>
-                      <input 
+                      <input
                         type="number"
                         min="1" max="12"
                         className="bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 w-full text-center"
@@ -2675,7 +2630,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[9px] font-bold text-slate-500 block mb-1">YEAR</label>
-                      <input 
+                      <input
                         type="number"
                         className="bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 w-full text-center"
                         value={billYear}
@@ -2684,7 +2639,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={handleGenerateBills}
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all shadow-md shadow-emerald-500/10"
                   >
@@ -2694,7 +2649,7 @@ export default function App() {
 
                 {/* Statements List */}
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Billing Statements</h3>
-                
+
                 {allBills.map(bill => {
                   const customer = allCustomers.find(c => c.id === bill.customerId) || {};
                   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -2710,7 +2665,7 @@ export default function App() {
                           {bill.status.toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <div className="text-[10px] text-slate-400 flex justify-between">
                         <span>Cow: {bill.milkQtyCow}L | Buffalo: {bill.milkQtyBuffalo}L</span>
                         <span className="font-bold text-slate-200">Total: ₹{bill.grandTotal}</span>
@@ -2718,14 +2673,14 @@ export default function App() {
 
                       <div className="flex gap-2 pt-1 border-t border-slate-800/30">
                         {bill.status === 'pending' && (
-                          <button 
+                          <button
                             onClick={() => handleMarkBillPaid(bill)}
                             className="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg flex-1 transition-all"
                           >
                             Mark Cash Paid
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={() => handleSendWhatsAppBill(bill, customer)}
                           className="bg-slate-850 hover:bg-slate-800 text-slate-300 text-[9px] font-bold px-3 py-1.5 rounded-lg flex-1 border border-slate-700/50 transition-all"
                         >
@@ -2742,7 +2697,7 @@ export default function App() {
             {adminTab === 'marketplace' && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cattle Ads Moderation</h3>
-                
+
                 {allListings.length === 0 ? (
                   <p className="text-slate-500 text-xs text-center py-4 bg-slate-900/30 border border-slate-900 rounded-xl">No cattle ads posted yet.</p>
                 ) : (
@@ -2751,8 +2706,8 @@ export default function App() {
                     return (
                       <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
                         <div className="flex gap-3 items-center">
-                          <img 
-                            src={item.images?.[0] || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500'} 
+                          <img
+                            src={item.images?.[0] || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500'}
                             alt={item.breed}
                             className="w-12 h-12 object-cover rounded-lg border border-slate-800"
                           />
@@ -2766,20 +2721,19 @@ export default function App() {
                           <p>Price: <span className="font-bold text-emerald-400">₹{item.price}</span></p>
                           <p>Location: {item.location}</p>
                           <p>Seller: {seller.name || 'Seller'} ({item.contactNumber})</p>
-                          <p>Status: <span className={`font-bold ${
-                            item.status === 'approved' ? 'text-emerald-400' : item.status === 'rejected' ? 'text-red-400' : 'text-amber-400'
-                          }`}>{item.status.toUpperCase()}</span></p>
+                          <p>Status: <span className={`font-bold ${item.status === 'approved' ? 'text-emerald-400' : item.status === 'rejected' ? 'text-red-400' : 'text-amber-400'
+                            }`}>{item.status.toUpperCase()}</span></p>
                         </div>
 
                         {item.status === 'pending' && (
                           <div className="flex gap-2">
-                            <button 
+                            <button
                               onClick={() => handleUpdateListingStatus(item.id, 'approved')}
                               className="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg flex-1 transition-all"
                             >
                               Approve Listing
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleUpdateListingStatus(item.id, 'rejected')}
                               className="bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 text-[9px] font-bold px-3 py-1.5 rounded-lg flex-1 transition-all"
                             >
@@ -2797,36 +2751,36 @@ export default function App() {
 
           {/* Admin Navigation footer */}
           <div className="bg-slate-900 border-t border-slate-800 py-2.5 px-3 flex justify-between items-center shrink-0">
-            <button 
-              onClick={() => setAdminTab('dashboard')} 
+            <button
+              onClick={() => setAdminTab('dashboard')}
               className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'dashboard' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">🏠</span>
               <span className="text-[8px] font-bold">Dashboard</span>
             </button>
-            <button 
-              onClick={() => setAdminTab('customers')} 
+            <button
+              onClick={() => setAdminTab('customers')}
               className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'customers' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">👥</span>
               <span className="text-[8px] font-bold">Customers</span>
             </button>
-            <button 
-              onClick={() => setAdminTab('quick_entry')} 
+            <button
+              onClick={() => setAdminTab('quick_entry')}
               className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'quick_entry' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">⚡</span>
               <span className="text-[8px] font-bold">Quick entry</span>
             </button>
-            <button 
-              onClick={() => setAdminTab('entries')} 
+            <button
+              onClick={() => setAdminTab('entries')}
               className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'entries' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">📝</span>
               <span className="text-[8px] font-bold">Entries</span>
             </button>
-            <button 
-              onClick={() => setAdminTab('billing')} 
+            <button
+              onClick={() => setAdminTab('billing')}
               className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${adminTab === 'billing' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <span className="text-base">💳</span>
@@ -2856,7 +2810,7 @@ export default function App() {
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="text-[10px] font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-700/50 transition-all"
               >
@@ -2867,7 +2821,7 @@ export default function App() {
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Today's deliveries schedule</h3>
-            
+
             {activeTasks.length === 0 ? (
               <p className="text-slate-500 text-xs text-center py-6 bg-slate-900/30 border border-slate-900 rounded-xl">No active deliveries scheduled today.</p>
             ) : (
@@ -2876,15 +2830,15 @@ export default function App() {
                   <h4 className="text-xs font-bold text-slate-200">{task.taskNum}</h4>
                   <p className="text-[10px] text-slate-500">📍 Address: {task.address}</p>
                   <p className="text-[11px] text-emerald-400 font-bold tracking-wide mt-1">🥛 {task.detail}</p>
-                  
+
                   <div className="flex gap-2 pt-2">
-                    <button 
+                    <button
                       onClick={() => handleMarkDelivered(task)}
                       className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold py-2 rounded-xl flex-1 transition-all shadow-md shadow-emerald-500/10"
                     >
                       Mark Delivered
                     </button>
-                    <button 
+                    <button
                       onClick={() => showAlert('Skipped', 'Delivery task skipped.')}
                       className="bg-slate-800 hover:bg-slate-705 text-slate-400 text-[10px] font-bold px-3 py-2 rounded-xl border border-slate-700/55 transition-all"
                     >
@@ -2923,7 +2877,7 @@ export default function App() {
               {theme === 'light' ? '🌙' : '☀️'}
             </button>
             {/* Notification bell */}
-            <button 
+            <button
               onClick={() => setIsNotificationsOpen(true)}
               className="relative p-2 bg-slate-800/80 border border-slate-700/50 hover:bg-slate-800 rounded-xl transition-all"
             >
@@ -2934,7 +2888,7 @@ export default function App() {
                 </span>
               )}
             </button>
-            <button 
+            <button
               onClick={handleLogout}
               className="text-[10px] font-bold text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-slate-700/50 transition-all"
             >
@@ -2945,7 +2899,7 @@ export default function App() {
 
         {/* Tab content Scroll Box */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          
+
           {/* Home Tab */}
           {currentTab === 'home' && (
             <div className="space-y-4">
@@ -2958,7 +2912,7 @@ export default function App() {
                       <p className="text-[10px] text-slate-400 mt-0.5">You are currently logged in with the default password. For safety, please change your password immediately.</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsChangePasswordOpen(true)}
                     className="w-full bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-white border border-amber-500/30 py-2 rounded-xl text-[10px] font-bold transition-all mt-1 cursor-pointer"
                   >
@@ -2991,35 +2945,35 @@ export default function App() {
               {/* Quick actions grid */}
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <button
                   onClick={() => setIsBookingOpen(true)}
                   className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">⚡</span>
                   <span className="text-xs font-bold text-slate-300">Book Instantly</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setIsSubscribeOpen(true)}
                   className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">📅</span>
                   <span className="text-xs font-bold text-slate-300">Subscribe Daily</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setIsSellingOpen(true)}
                   className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">🐄</span>
                   <span className="text-xs font-bold text-slate-300">Sell Cattle</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setIsSupportOpen(true)}
                   className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer"
                 >
                   <span className="text-2xl mb-1.5">💬</span>
                   <span className="text-xs font-bold text-slate-300">Help Support</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setIsChangePasswordOpen(true)}
                   className="col-span-2 bg-slate-900 border border-slate-800 hover:border-slate-700 p-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
@@ -3053,7 +3007,7 @@ export default function App() {
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-1">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Daily Subscriptions</h3>
-                <button 
+                <button
                   onClick={() => setIsSubscribeOpen(true)}
                   className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all"
                 >
@@ -3070,16 +3024,15 @@ export default function App() {
                       </h4>
                       <p className="text-[9px] text-slate-500">Volume: {sub.qty}L | Shift: {sub.shift}</p>
                     </div>
-                    <span className={`text-[9.5px] font-bold uppercase rounded px-2 py-0.5 ${
-                      sub.status === 'active' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50' : 'bg-slate-950 text-slate-400 border border-slate-850'
-                    }`}>
+                    <span className={`text-[9.5px] font-bold uppercase rounded px-2 py-0.5 ${sub.status === 'active' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/50' : 'bg-slate-950 text-slate-400 border border-slate-850'
+                      }`}>
                       {sub.status}
                     </span>
                   </div>
 
                   <div className="flex gap-2">
                     {sub.status === 'active' && (
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             await fetchFromBackend(`/api/subscriptions/${sub.id}`, {
@@ -3099,7 +3052,7 @@ export default function App() {
                       </button>
                     )}
                     {sub.status === 'paused' && (
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             await fetchFromBackend(`/api/subscriptions/${sub.id}`, {
@@ -3119,7 +3072,7 @@ export default function App() {
                       </button>
                     )}
                     {sub.status !== 'cancelled' && (
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             await fetchFromBackend(`/api/subscriptions/${sub.id}`, {
@@ -3172,10 +3125,10 @@ export default function App() {
           {currentTab === 'billing' && (
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Monthly Statements</h3>
-              
+
               {bills.map(bill => (
-                <div 
-                  key={bill.id} 
+                <div
+                  key={bill.id}
                   onClick={() => setSelectedBillSummary(bill)}
                   className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 cursor-pointer hover:border-slate-700 transition-all"
                 >
@@ -3199,35 +3152,35 @@ export default function App() {
 
         {/* Customer Navigation Footer tabs */}
         <div className="bg-slate-900 border-t border-slate-800 py-2.5 px-3 flex justify-between items-center shrink-0">
-          <button 
+          <button
             onClick={() => setCurrentTab('home')}
             className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'home' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">🏠</span>
             <span className="text-[8px] font-bold">Home</span>
           </button>
-          <button 
+          <button
             onClick={() => setCurrentTab('subscribe')}
             className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'subscribe' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📅</span>
             <span className="text-[8px] font-bold">Subscribe</span>
           </button>
-          <button 
+          <button
             onClick={() => setCurrentTab('logs')}
             className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'logs' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📊</span>
             <span className="text-[8px] font-bold">History</span>
           </button>
-          <button 
+          <button
             onClick={() => setCurrentTab('calendar')}
             className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'calendar' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <span className="text-base">📅</span>
             <span className="text-[8px] font-bold">Calendar</span>
           </button>
-          <button 
+          <button
             onClick={() => setCurrentTab('billing')}
             className={`flex-1 flex flex-col items-center gap-1 transition-all focus:outline-none ${currentTab === 'billing' ? 'text-emerald-450' : 'text-slate-500 hover:text-slate-300'}`}
           >
@@ -3267,14 +3220,14 @@ export default function App() {
             <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 w-full max-w-[280px] space-y-4 shadow-xl">
               <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
                 <h3 className="font-extrabold text-sm text-slate-100">Bill Summary</h3>
-                <button 
+                <button
                   onClick={() => setSelectedBillSummary(null)}
                   className="text-slate-400 hover:text-slate-200 text-sm font-bold"
                 >
                   ✕
                 </button>
               </div>
-              
+
               <div className="space-y-2 text-xs text-slate-400">
                 <div className="flex justify-between">
                   <span>Billing Month:</span>
@@ -3286,7 +3239,7 @@ export default function App() {
                     {selectedBillSummary.status}
                   </span>
                 </div>
-                
+
                 <div className="border-t border-slate-800/50 pt-2 space-y-1.5">
                   {selectedBillSummary.milkQtyCow > 0 && (
                     <div className="flex justify-between">
@@ -3295,10 +3248,10 @@ export default function App() {
                     </div>
                   )}
                   {selectedBillSummary.milkQtyBuffalo > 0 && (
-                     <div className="flex justify-between">
-                       <span>Buffalo Milk:</span>
-                       <span className="text-slate-200">{selectedBillSummary.milkQtyBuffalo} L</span>
-                     </div>
+                    <div className="flex justify-between">
+                      <span>Buffalo Milk:</span>
+                      <span className="text-slate-200">{selectedBillSummary.milkQtyBuffalo} L</span>
+                    </div>
                   )}
                   <div className="flex justify-between border-t border-slate-800/20 pt-1.5">
                     <span>This Month Cost:</span>
@@ -3330,7 +3283,7 @@ export default function App() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setSelectedBillSummary(null)}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition-all"
               >
@@ -3346,7 +3299,7 @@ export default function App() {
             <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 w-full max-w-[280px] text-center space-y-4 shadow-xl">
               <h3 className="font-extrabold text-sm text-slate-100">{customAlert.title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">{customAlert.message}</p>
-              <button 
+              <button
                 onClick={() => setCustomAlert(null)}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition-all"
               >
@@ -3363,13 +3316,13 @@ export default function App() {
               <h3 className="font-extrabold text-sm text-slate-100">{customConfirm.title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">{customConfirm.message}</p>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => setCustomConfirm(null)}
                   className="flex-1 bg-slate-805 hover:bg-slate-800 text-slate-400 font-bold py-2 rounded-xl text-xs border border-slate-700/50 transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     customConfirm.onConfirm();
                     setCustomConfirm(null);
@@ -3389,7 +3342,7 @@ export default function App() {
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl max-h-[80%] flex flex-col p-5 space-y-4">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 className="font-bold text-sm text-slate-200">Alert Notifications</h3>
-                <button 
+                <button
                   onClick={async () => {
                     try {
                       const unreadNotifs = notifications.filter((n: any) => !n.isRead);
@@ -3426,8 +3379,8 @@ export default function App() {
                   <p className="text-center text-slate-500 text-xs py-8">No notifications yet</p>
                 ) : (
                   notifications.map((notif: any) => (
-                    <button 
-                      key={notif.id} 
+                    <button
+                      key={notif.id}
                       onClick={async () => {
                         if (!notif.isRead) {
                           try {
@@ -3447,11 +3400,10 @@ export default function App() {
                         }
                         showAlert(notif.title, notif.message);
                       }}
-                      className={`w-full text-left p-3 rounded-xl border flex gap-3 items-start transition-all ${
-                        notif.isRead 
-                          ? 'bg-slate-950/40 border-slate-900 text-slate-400' 
+                      className={`w-full text-left p-3 rounded-xl border flex gap-3 items-start transition-all ${notif.isRead
+                          ? 'bg-slate-950/40 border-slate-900 text-slate-400'
                           : 'bg-emerald-950/20 border-emerald-900/40 text-slate-200'
-                      }`}
+                        }`}
                     >
                       <span className="text-base mt-0.5">{notif.type === 'bill' ? '🥛' : '⚡'}</span>
                       <div className="flex-1 text-xs">
@@ -3467,7 +3419,7 @@ export default function App() {
                 )}
               </div>
 
-              <button 
+              <button
                 onClick={() => setIsNotificationsOpen(false)}
                 className="w-full bg-slate-800 hover:bg-slate-705 border border-slate-700/50 text-slate-350 font-bold py-2.5 rounded-xl text-xs transition-all"
               >
@@ -3482,24 +3434,22 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end animate-slide-up">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Schedule Daily Subscription</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CATTLE MILK TYPE</label>
                   <div className="flex bg-slate-950 p-1 border border-slate-850 rounded-xl">
-                    <button 
+                    <button
                       onClick={() => setSubType('cow')}
-                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${
-                        subType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${subType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Cow Milk
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSubType('buffalo')}
-                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${
-                        subType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${subType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Buffalo Milk
                     </button>
@@ -3508,7 +3458,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">DAILY VOLUME (LITRES)</label>
-                  <input 
+                  <input
                     type="number"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-250 focus:outline-none"
                     value={subQty}
@@ -3519,19 +3469,17 @@ export default function App() {
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">SHIFT SCHEDULE</label>
                   <div className="flex bg-slate-950 p-1 border border-slate-850 rounded-xl">
-                    <button 
+                    <button
                       onClick={() => setSubShift('morning')}
-                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${
-                        subShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${subShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Morning
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSubShift('evening')}
-                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${
-                        subShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-xs py-1.5 font-bold rounded-lg transition-all ${subShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Evening
                     </button>
@@ -3540,13 +3488,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => setIsSubscribeOpen(false)}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSubscribe}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -3566,23 +3514,23 @@ export default function App() {
               <div className="space-y-3">
                 <div className="relative">
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CATTLE MILK TYPE</label>
-                  <button 
+                  <button
                     onClick={() => setShowBookTypeDropdown(!showBookTypeDropdown)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-left text-slate-300 flex justify-between items-center"
                   >
                     <span>{bookType === 'cow' ? 'Cow Milk' : 'Buffalo Milk'}</span>
                     <span className="text-[8px] text-slate-500">▼</span>
                   </button>
-                  
+
                   {showBookTypeDropdown && (
                     <div className="absolute left-0 right-0 top-[52px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden z-[110]">
-                      <button 
+                      <button
                         onClick={() => { setBookType('cow'); setShowBookTypeDropdown(false); }}
                         className="w-full text-left text-xs text-slate-350 px-4 py-2 hover:bg-slate-900"
                       >
                         Cow Milk
                       </button>
-                      <button 
+                      <button
                         onClick={() => { setBookType('buffalo'); setShowBookTypeDropdown(false); }}
                         className="w-full text-left text-xs text-slate-350 px-4 py-2 hover:bg-slate-900 border-t border-slate-900"
                       >
@@ -3594,7 +3542,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ORDER QUANTITY (LITRES)</label>
-                  <input 
+                  <input
                     type="number"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none"
                     value={bookQty}
@@ -3604,13 +3552,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => { setIsBookingOpen(false); setShowBookTypeDropdown(false); }}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleBook}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -3626,24 +3574,22 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[95%] overflow-y-auto">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Post Cattle Marketplace Ad</h3>
-              
+
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ANIMAL TYPE</label>
                   <div className="flex bg-slate-950 p-1 border border-slate-850 rounded-xl">
-                    <button 
+                    <button
                       onClick={() => setSellType('cow')}
-                      className={`flex-1 py-1 font-bold rounded-lg transition-all ${
-                        sellType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 py-1 font-bold rounded-lg transition-all ${sellType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Cow
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSellType('buffalo')}
-                      className={`flex-1 py-1 font-bold rounded-lg transition-all ${
-                        sellType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 py-1 font-bold rounded-lg transition-all ${sellType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Buffalo
                     </button>
@@ -3652,7 +3598,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CATTLE BREED</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="e.g. Sahiwal or Murrah"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none"
@@ -3664,7 +3610,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">PRICE (₹)</label>
-                    <input 
+                    <input
                       type="number"
                       placeholder="e.g. 50000"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none"
@@ -3674,7 +3620,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">DAILY YIELD (L)</label>
-                    <input 
+                    <input
                       type="number"
                       placeholder="e.g. 12"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none"
@@ -3686,7 +3632,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">LOCATION</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="e.g. Noida, Uttar Pradesh"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none"
@@ -3697,13 +3643,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => setIsSellingOpen(false)}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSell}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -3719,10 +3665,10 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Submit Support Inquiry</h3>
-              
+
               <div>
                 <label className="text-[9px] font-bold text-slate-500 block mb-1.5">QUERY DETAILS</label>
-                <textarea 
+                <textarea
                   rows={4}
                   placeholder="How can we help you? e.g. Request extra morning milk, adjust ledger discrepancy..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none"
@@ -3732,13 +3678,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => setIsSupportOpen(false)}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSupportSubmit}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -3754,12 +3700,12 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end animate-fade-in">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 text-left">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Change Account Password</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CURRENT PASSWORD</label>
                   <div className="relative">
-                    <input 
+                    <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       placeholder="Enter current password"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
@@ -3792,7 +3738,7 @@ export default function App() {
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">NEW PASSWORD</label>
                   <div className="relative">
-                    <input 
+                    <input
                       type={showNewPassword ? 'text' : 'password'}
                       placeholder="Enter new password"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
@@ -3825,7 +3771,7 @@ export default function App() {
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CONFIRM NEW PASSWORD</label>
                   <div className="relative">
-                    <input 
+                    <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm new password"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-slate-200 focus:outline-none"
@@ -3857,7 +3803,7 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => {
                     setIsChangePasswordOpen(false);
                     setChangePasswordCurrent('');
@@ -3871,7 +3817,7 @@ export default function App() {
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleChangePasswordSubmit}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10"
                 >
@@ -3887,22 +3833,22 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end animate-slide-up">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[92%] overflow-y-auto">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Register New Customer</h3>
-              
+
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">FULL NAME</label>
-                  <input 
+                  <input
                     type="text"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={newCustName}
                     onChange={(e) => setNewCustName(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">MOBILE NUMBER</label>
-                    <input 
+                    <input
                       type="tel"
                       className="w-full bg-slate-950 border border-slate-855 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                       value={newCustMobile}
@@ -3912,19 +3858,17 @@ export default function App() {
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">BILLING LEDGER</label>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setNewCustType('monthly')}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          newCustType === 'monthly' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${newCustType === 'monthly' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Monthly
                       </button>
-                      <button 
+                      <button
                         onClick={() => setNewCustType('prepaid')}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          newCustType === 'prepaid' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${newCustType === 'prepaid' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Prepaid
                       </button>
@@ -3934,7 +3878,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ADDRESS</label>
-                  <input 
+                  <input
                     type="text"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={newCustAddress}
@@ -3952,7 +3896,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">COW RATE (₹)</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
                         value={newCustCowRate}
@@ -3961,7 +3905,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">MORN QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -3971,7 +3915,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">EVE QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -3989,27 +3933,25 @@ export default function App() {
                       <span>🐃</span> Buffalo Milk Subscription
                     </span>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setNewCustBuffaloTier('standard');
                           setNewCustBuffaloRate(buffaloRate);
                         }}
-                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${
-                          newCustBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${newCustBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Std
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setNewCustBuffaloTier('premium');
                           setNewCustBuffaloRate(buffaloPremiumRate);
                         }}
-                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${
-                          newCustBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${newCustBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Prem
                       </button>
@@ -4018,7 +3960,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">BUFF RATE (₹)</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
                         value={newCustBuffaloRate}
@@ -4027,7 +3969,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">MORN QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4037,7 +3979,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">EVE QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4050,7 +3992,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">OPENING BALANCE (₹)</label>
-                  <input 
+                  <input
                     type="number"
                     placeholder="e.g. 500"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
@@ -4061,21 +4003,19 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => setIsAddCustOpen(false)}
                   disabled={registeringCustomer}
-                  className={`flex-1 bg-slate-800 text-slate-450 font-bold py-2 rounded-xl text-xs transition-all border border-slate-700/50 ${
-                    registeringCustomer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-705 text-slate-450'
-                  }`}
+                  className={`flex-1 bg-slate-800 text-slate-450 font-bold py-2 rounded-xl text-xs transition-all border border-slate-700/50 ${registeringCustomer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-705 text-slate-450'
+                    }`}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleAddCustomer}
                   disabled={registeringCustomer}
-                  className={`flex-1 bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${
-                    registeringCustomer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-600'
-                  }`}
+                  className={`flex-1 bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${registeringCustomer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-600'
+                    }`}
                 >
                   {registeringCustomer ? (
                     <>
@@ -4100,7 +4040,7 @@ export default function App() {
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">NAME</label>
-                  <input 
+                  <input
                     type="text"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={editCustName}
@@ -4111,7 +4051,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">MOBILE</label>
-                    <input 
+                    <input
                       type="tel"
                       className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                       value={editCustMobile}
@@ -4121,19 +4061,17 @@ export default function App() {
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">LEDGER MODE</label>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setEditCustType('monthly')}
-                        className={`flex-1 text-[9.5px] py-1 font-bold rounded transition-all ${
-                          editCustType === 'monthly' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9.5px] py-1 font-bold rounded transition-all ${editCustType === 'monthly' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Monthly
                       </button>
-                      <button 
+                      <button
                         onClick={() => setEditCustType('prepaid')}
-                        className={`flex-1 text-[9.5px] py-1 font-bold rounded transition-all ${
-                          editCustType === 'prepaid' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9.5px] py-1 font-bold rounded transition-all ${editCustType === 'prepaid' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Prepaid
                       </button>
@@ -4143,7 +4081,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ADDRESS</label>
-                  <input 
+                  <input
                     type="text"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={editCustAddress}
@@ -4161,7 +4099,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">COW RATE (₹)</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
                         value={editCustCowRate}
@@ -4170,7 +4108,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">MORN QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4180,7 +4118,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">EVE QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4198,27 +4136,25 @@ export default function App() {
                       <span>🐃</span> Buffalo Milk Subscription
                     </span>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setEditCustBuffaloTier('standard');
                           setEditCustBuffaloRate(buffaloRate);
                         }}
-                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${
-                          editCustBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${editCustBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Std
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setEditCustBuffaloTier('premium');
                           setEditCustBuffaloRate(buffaloPremiumRate);
                         }}
-                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${
-                          editCustBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`text-[8.5px] px-2 py-0.5 font-bold rounded transition-all ${editCustBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Prem
                       </button>
@@ -4227,7 +4163,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">BUFF RATE (₹)</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
                         value={editCustBuffaloRate}
@@ -4236,7 +4172,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">MORN QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4246,7 +4182,7 @@ export default function App() {
                     </div>
                     <div>
                       <label className="text-[8.5px] font-bold text-slate-500 block mb-0.5">EVE QTY (L)</label>
-                      <input 
+                      <input
                         type="number"
                         placeholder="0"
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2 py-1 text-slate-200 text-center text-xs focus:outline-none"
@@ -4259,7 +4195,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ADJUST BALANCE (₹)</label>
-                  <input 
+                  <input
                     type="number"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={editCustBalance}
@@ -4271,12 +4207,11 @@ export default function App() {
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ACCOUNT STATUS</label>
                   <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
                     {['active', 'paused', 'inactive'].map(st => (
-                      <button 
+                      <button
                         key={st}
                         onClick={() => setEditCustStatus(st as any)}
-                        className={`flex-1 text-[9.5px] py-1 font-bold rounded uppercase transition-all ${
-                          editCustStatus === st ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9.5px] py-1 font-bold rounded uppercase transition-all ${editCustStatus === st ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         {st}
                       </button>
@@ -4286,13 +4221,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => { setIsEditCustOpen(false); setSelectedCustomer(null); }}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleEditCustomer}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md"
                 >
@@ -4313,7 +4248,7 @@ export default function App() {
               <div className="flex-1 overflow-y-auto pr-0.5 pb-2">
                 {selectedCustCalendar && renderCalendar(selectedCustCalendar.id)}
               </div>
-              <button 
+              <button
                 onClick={() => { setIsCustCalendarOpen(false); setSelectedCustCalendar(null); }}
                 className="w-full bg-slate-800 hover:bg-slate-705 text-red-400 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700/50 shrink-0"
               >
@@ -4328,7 +4263,7 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end animate-slide-up text-left">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[92%] overflow-y-auto">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Correct/Update Daily Delivery</h3>
-              
+
               <div className="space-y-3 text-xs text-left">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CUSTOMER</label>
@@ -4355,7 +4290,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">QUANTITY (LITRES)</label>
-                    <input 
+                    <input
                       type="number"
                       className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none text-center font-bold"
                       value={editEntryQty}
@@ -4364,7 +4299,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">RATE (₹/L)</label>
-                    <input 
+                    <input
                       type="number"
                       className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none text-center font-bold"
                       value={editEntryRate}
@@ -4375,7 +4310,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">NOTES</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="e.g. Quantity variation correction"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
@@ -4386,13 +4321,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => { setIsEditEntryOpen(false); setEditEntryId(''); }}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleEditEntry}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md"
                 >
@@ -4408,25 +4343,24 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[90] flex flex-col justify-end">
             <div className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 space-y-4 max-h-[92%] overflow-y-auto">
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">Log Daily Delivery</h3>
-              
+
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">SELECT CUSTOMER</label>
                   <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
                     {allCustomers.map(cust => (
-                      <button 
-                        key={cust.id} 
+                      <button
+                        key={cust.id}
                         onClick={() => {
                           setEntryCustId(cust.id);
                           setEntryMilkType(cust.milkType);
                           setEntryBuffaloTier(cust.buffaloTier || 'standard');
                           setEntryRate(String(cust.rate));
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap border transition-all ${
-                          entryCustId === cust.id 
-                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' 
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap border transition-all ${entryCustId === cust.id
+                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
                             : 'bg-slate-950 border-slate-850 text-slate-450 hover:text-slate-300'
-                        }`}
+                          }`}
                       >
                         {cust.name}
                       </button>
@@ -4438,7 +4372,7 @@ export default function App() {
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">CATTLE MILK</label>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => {
                           setEntryMilkType('cow');
                           const cust = allCustomers.find(c => c.id === entryCustId);
@@ -4452,13 +4386,12 @@ export default function App() {
                             setEntryRate(cowRate);
                           }
                         }}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          entryMilkType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${entryMilkType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Cow
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setEntryMilkType('buffalo');
                           const cust = allCustomers.find(c => c.id === entryCustId);
@@ -4475,9 +4408,8 @@ export default function App() {
                             setEntryBuffaloTier('standard');
                           }
                         }}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          entryMilkType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${entryMilkType === 'buffalo' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Buffalo
                       </button>
@@ -4486,19 +4418,17 @@ export default function App() {
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">SHIFT</label>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         onClick={() => setEntryShift('morning')}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          entryShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${entryShift === 'morning' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Morning
                       </button>
-                      <button 
+                      <button
                         onClick={() => setEntryShift('evening')}
-                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${
-                          entryShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1 font-bold rounded transition-all ${entryShift === 'evening' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Evening
                       </button>
@@ -4510,7 +4440,7 @@ export default function App() {
                   <div className="bg-slate-950/40 p-2.5 border border-slate-850/60 rounded-xl space-y-1.5">
                     <label className="text-[9px] font-bold text-slate-500 block">BUFFALO TYPE</label>
                     <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setEntryBuffaloTier('standard');
@@ -4521,13 +4451,12 @@ export default function App() {
                             setEntryRate(buffaloRate);
                           }
                         }}
-                        className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${
-                          entryBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${entryBuffaloTier === 'standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Standard (Plain)
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setEntryBuffaloTier('premium');
@@ -4538,9 +4467,8 @@ export default function App() {
                             setEntryRate(buffaloPremiumRate);
                           }
                         }}
-                        className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${
-                          entryBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                        }`}
+                        className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${entryBuffaloTier === 'premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                          }`}
                       >
                         Premium
                       </button>
@@ -4551,7 +4479,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">QUANTITY (LITRES)</label>
-                    <input 
+                    <input
                       type="number"
                       className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none text-center"
                       value={entryQty}
@@ -4560,7 +4488,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-slate-500 block mb-1">RATE (₹/L)</label>
-                    <input 
+                    <input
                       type="number"
                       className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none text-center"
                       value={entryRate}
@@ -4571,7 +4499,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">DELIVERY DATE</label>
-                  <input 
+                  <input
                     type="date"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
                     value={entryDate}
@@ -4581,7 +4509,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">NOTES</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="e.g. Extra milk request"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-1.5 text-slate-200 focus:outline-none"
@@ -4592,21 +4520,19 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => setIsAddEntryOpen(false)}
                   disabled={loggingEntry}
-                  className={`flex-1 bg-slate-800 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700/50 ${
-                    loggingEntry ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-705'
-                  }`}
+                  className={`flex-1 bg-slate-800 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700/50 ${loggingEntry ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-705'
+                    }`}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleAddEntry}
                   disabled={loggingEntry}
-                  className={`flex-1 bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${
-                    loggingEntry ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-600'
-                  }`}
+                  className={`flex-1 bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${loggingEntry ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-600'
+                    }`}
                 >
                   {loggingEntry ? (
                     <>
@@ -4631,7 +4557,7 @@ export default function App() {
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">ALERT TITLE</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="e.g. Festival timings adjust"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-slate-200 focus:outline-none"
@@ -4641,7 +4567,7 @@ export default function App() {
                 </div>
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">BODY MESSAGE</label>
-                  <textarea 
+                  <textarea
                     rows={3}
                     placeholder="Write announcement details..."
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-slate-200 focus:outline-none"
@@ -4652,13 +4578,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => setIsAnnouncementOpen(false)}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSendAnnouncement}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md"
                 >
@@ -4676,11 +4602,11 @@ export default function App() {
               <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">
                 {editingCashSaleId ? 'Edit Walk-in Cash Sale' : 'Log Walk-in Cash Sale'}
               </h3>
-              
+
               <div className="space-y-3 text-xs">
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">SALE DATE</label>
-                  <input 
+                  <input
                     type="date"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-slate-200 focus:outline-none"
                     value={cashSaleDate}
@@ -4691,27 +4617,24 @@ export default function App() {
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">MILK CATEGORY</label>
                   <div className="flex bg-slate-950 p-0.5 border border-slate-850 rounded-lg">
-                    <button 
+                    <button
                       onClick={() => setCashSaleMilkType('cow')}
-                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${
-                        cashSaleMilkType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${cashSaleMilkType === 'cow' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Cow (₹{cowRate})
                     </button>
-                    <button 
+                    <button
                       onClick={() => setCashSaleMilkType('buffalo_standard')}
-                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${
-                        cashSaleMilkType === 'buffalo_standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${cashSaleMilkType === 'buffalo_standard' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Buff Std (₹{buffaloRate})
                     </button>
-                    <button 
+                    <button
                       onClick={() => setCashSaleMilkType('buffalo_premium')}
-                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${
-                        cashSaleMilkType === 'buffalo_premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
-                      }`}
+                      className={`flex-1 text-[9px] py-1.5 font-bold rounded transition-all ${cashSaleMilkType === 'buffalo_premium' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                        }`}
                     >
                       Buff Prem (₹{buffaloPremiumRate})
                     </button>
@@ -4720,7 +4643,7 @@ export default function App() {
 
                 <div>
                   <label className="text-[9px] font-bold text-slate-500 block mb-1">CASH RECEIVED (₹)</label>
-                  <input 
+                  <input
                     type="number"
                     placeholder="e.g. 50"
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-slate-200 focus:outline-none"
@@ -4735,12 +4658,12 @@ export default function App() {
                       ₹{cashSaleAmount} ÷ ₹{
                         cashSaleMilkType === 'cow' ? cowRate
                           : cashSaleMilkType === 'buffalo_premium' ? buffaloPremiumRate
-                          : buffaloRate
+                            : buffaloRate
                       }/L = {(
                         Number(cashSaleAmount) / (
                           cashSaleMilkType === 'cow' ? Number(cowRate)
                             : cashSaleMilkType === 'buffalo_premium' ? Number(buffaloPremiumRate)
-                            : Number(buffaloRate)
+                              : Number(buffaloRate)
                         )
                       ).toFixed(2)}L Milk to give
                     </p>
@@ -4749,13 +4672,13 @@ export default function App() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button 
+                <button
                   onClick={() => { setIsCashSaleOpen(false); setCashSaleAmount(''); setEditingCashSaleId(null); }}
                   className="flex-1 bg-slate-800 hover:bg-slate-705 text-slate-450 font-bold py-2.5 rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleCashSale}
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md"
                 >
